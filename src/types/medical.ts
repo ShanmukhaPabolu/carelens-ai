@@ -116,7 +116,8 @@ export interface FollowUpItem {
 export interface ParentProfile {
   id: string;
   name: string;
-  relationship: 'Mother' | 'Father' | 'Parent';
+  relationship: string;
+
   age: number;
   gender: string;
   bloodGroup: string;

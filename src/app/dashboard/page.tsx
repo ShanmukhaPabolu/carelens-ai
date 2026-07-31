@@ -24,15 +24,19 @@ import { DoctorConflictAlert } from '@/components/dashboard/DoctorConflictAlert'
 import { ParentHealthStatusGrid } from '@/components/dashboard/ParentHealthStatusGrid';
 import { MissingRecordsCard } from '@/components/dashboard/MissingRecordsCard';
 import { EmergencyCardModal } from '@/components/dashboard/EmergencyCardModal';
+import { AddFamilyMemberModal } from '@/components/dashboard/AddFamilyMemberModal';
+import { UserPlus } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { activeParentProfile, reports, followUps, caregiverUser } = useMedical();
+  const { profiles, activeParentProfile, reports, followUps, caregiverUser } = useMedical();
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [showAddFamilyModal, setShowAddFamilyModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
 
 
   const latestReport = reports[0];
@@ -87,8 +91,45 @@ export default function DashboardPage() {
 
   const upcomingFollowUps = followUps.filter((f) => f.status !== 'completed').slice(0, 3);
 
+  if (mounted && profiles.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 space-y-6">
+        <div className="bg-white border-2 border-dashed border-sky-300 rounded-3xl p-8 sm:p-12 text-center space-y-5 shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-sky-100 border border-sky-200 text-sky-700 flex items-center justify-center mx-auto shadow-2xs">
+            <UserPlus className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Welcome to CareLens AI
+            </h1>
+            {caregiverUser && (
+              <p className="text-xs font-semibold text-sky-700">
+                Logged in as {caregiverUser.fullName} ({caregiverUser.email})
+              </p>
+            )}
+            <p className="text-xs text-slate-500 leading-relaxed font-medium pt-1">
+              You haven't added any family members to this account yet. Add your Mother, Father, Grandparent, Spouse, or In-law to start tracking their medical history.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddFamilyModal(true)}
+            className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+          >
+            <UserPlus className="w-4 h-4" /> + Add First Family Member
+          </button>
+        </div>
+
+        <AddFamilyMemberModal
+          isOpen={showAddFamilyModal}
+          onClose={() => setShowAddFamilyModal(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
+
       
       {/* 1. PARENT HEALTH STATUS CARDS (Answers "How are my parents today?" via Status Cards) */}
       <ParentHealthStatusGrid />

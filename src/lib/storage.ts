@@ -28,19 +28,20 @@ const getUserStorageKey = (baseKey: string): string => {
 };
 
 export const getStoredProfiles = (): ParentProfile[] => {
-  if (!isBrowser) return INITIAL_PARENT_PROFILES;
+  if (!isBrowser) return [];
   try {
     const key = getUserStorageKey(STORAGE_KEYS.PROFILES);
     const raw = localStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem(key, JSON.stringify(INITIAL_PARENT_PROFILES));
-      return INITIAL_PARENT_PROFILES;
+      localStorage.setItem(key, JSON.stringify([]));
+      return [];
     }
     return JSON.parse(raw);
   } catch {
-    return INITIAL_PARENT_PROFILES;
+    return [];
   }
 };
+
 
 export const saveStoredProfiles = (profiles: ParentProfile[]): void => {
   if (!isBrowser) return;

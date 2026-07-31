@@ -86,9 +86,25 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
 
+  const defaultEmptyProfile: ParentProfile = {
+    id: 'none',
+    name: 'No Family Member',
+    relationship: 'Family Member',
+    age: 0,
+    gender: 'Unspecified',
+    bloodGroup: 'Unspecified',
+    primaryCondition: 'None',
+    conditions: [],
+    primaryDoctor: 'Not assigned',
+    hospital: 'Not specified',
+    emergencyContactName: 'Not set',
+    emergencyContactPhone: '',
+  };
+
   // Filter reports & follow-ups by active parent ID
   const activeParentProfile =
-    profiles.find((p) => p.id === activeParentId) || profiles[0];
+    profiles.find((p) => p.id === activeParentId) || profiles[0] || defaultEmptyProfile;
+
 
   const filteredReports = allReports.filter((r) => r.parentId === activeParentId);
   const filteredFollowUps = allFollowUps.filter((f) => f.parentId === activeParentId);

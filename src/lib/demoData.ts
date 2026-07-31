@@ -1,45 +1,7 @@
 import { ParentProfile, MedicalReport, FollowUpItem, ParentHealthStatusCard, MissingHealthRecordAlert } from '../types/medical';
 
-export const INITIAL_PARENT_PROFILES: ParentProfile[] = [
-  {
-    id: 'parent_mother',
-    name: 'Lakshmi Devi',
-    relationship: 'Mother',
-    age: 58,
-    gender: 'Female',
-    bloodGroup: 'O+',
-    city: 'Hyderabad',
-    allergies: [],
-    primaryCondition: 'General Health Monitoring',
-    conditions: [],
-    primaryDoctor: 'Not assigned',
-    hospital: 'Not specified',
-    hospitalPreference: 'Apollo Speciality Hospital & Apex Cardiac Institute',
-    emergencyContactName: 'Rohan Devi (Son / Caregiver)',
-    emergencyContactPhone: '+91 98765 43210',
-    emergencyContactRelation: 'Son',
-    photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
-  },
-  {
-    id: 'parent_father',
-    name: 'Ramesh Devi',
-    relationship: 'Father',
-    age: 62,
-    gender: 'Male',
-    bloodGroup: 'B+',
-    city: 'Hyderabad',
-    allergies: [],
-    primaryCondition: 'General Health Monitoring',
-    conditions: [],
-    primaryDoctor: 'Not assigned',
-    hospital: 'Not specified',
-    hospitalPreference: 'St. Jude Cardiac Center & Metro Heart Institute',
-    emergencyContactName: 'Rohan Devi (Son / Caregiver)',
-    emergencyContactPhone: '+91 98765 43210',
-    emergencyContactRelation: 'Son',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
-  },
-];
+export const INITIAL_PARENT_PROFILES: ParentProfile[] = [];
+
 
 export const MOTHER_REPORTS: MedicalReport[] = [];
 export const FATHER_REPORTS: MedicalReport[] = [];
