@@ -181,23 +181,30 @@ export const saveStoredFollowUps = (followUps: FollowUpItem[]): void => {
 };
 
 export const getStoredCaregiverUser = (): CaregiverUser => {
-  if (!isBrowser) return { fullName: 'Adult Child (Caregiver)', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
+  if (!isBrowser) return { fullName: 'Caregiver', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.USER);
     if (!raw) {
       const defaultUser: CaregiverUser = {
-        fullName: 'Adult Child (Caregiver)',
+        fullName: 'Caregiver',
         email: 'caregiver@carelens.ai',
         createdAt: new Date().toISOString(),
       };
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(defaultUser));
       return defaultUser;
     }
-    return JSON.parse(raw);
+    const user: CaregiverUser = JSON.parse(raw);
+    if (!user.fullName || user.fullName === 'Adult Child (Caregiver)') {
+      const handle = user.email ? user.email.split('@')[0] : 'Caregiver';
+      const cleanName = handle.charAt(0).toUpperCase() + handle.slice(1);
+      user.fullName = cleanName;
+    }
+    return user;
   } catch {
-    return { fullName: 'Adult Child (Caregiver)', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
+    return { fullName: 'Caregiver', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
   }
 };
+
 
 export const saveStoredCaregiverUser = (user: CaregiverUser): void => {
   if (!isBrowser) return;

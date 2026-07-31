@@ -77,15 +77,17 @@ export default function LoginPage() {
         }
         setCaregiverUser(match);
       } else {
-        // First time sign-in demo fallback
+        const emailHandle = emailClean.split('@')[0] || 'Caregiver';
+        const derivedName = emailHandle.charAt(0).toUpperCase() + emailHandle.slice(1);
         const demoUser: CaregiverUser = {
-          fullName: fullName.trim() || 'Caregiver User',
+          fullName: fullName.trim() || derivedName,
           email: emailClean,
           password,
           createdAt: new Date().toISOString(),
         };
         setCaregiverUser(demoUser);
       }
+
 
       router.push('/dashboard');
     }
