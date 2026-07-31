@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Upload,
@@ -28,6 +28,12 @@ import { EmergencyCardModal } from '@/components/dashboard/EmergencyCardModal';
 export default function DashboardPage() {
   const { activeParentProfile, reports, followUps, caregiverUser } = useMedical();
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const latestReport = reports[0];
   const allConflicts = reports.flatMap((r) => r.doctorConflicts || []);
@@ -103,11 +109,12 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {caregiverUser && (
+            {mounted && caregiverUser && (
               <p className="text-xs text-sky-700 font-semibold mt-0.5">
                 Caregiver: {caregiverUser.fullName} ({caregiverUser.email})
               </p>
             )}
+
 
             <p className="text-xs text-slate-500 mt-0.5">
               Primary Physician: <strong className="text-slate-800">{activeParentProfile.primaryDoctor}</strong> • {activeParentProfile.hospital}
