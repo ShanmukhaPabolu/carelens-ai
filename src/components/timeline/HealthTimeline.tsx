@@ -352,18 +352,32 @@ export const HealthTimeline: React.FC = () => {
                       )}
 
                       {/* Footer Actions */}
-                      <div className="pt-2 flex items-center justify-between border-t border-slate-200">
+                      <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
                         <span className="text-[11px] text-slate-500 flex items-center gap-1">
                           <ShieldCheck className="w-3.5 h-3.5 text-sky-600" /> Overall AI Confidence: <strong className="text-slate-800">{report.aiConfidenceScore}%</strong>
                         </span>
 
-                        <Link
-                          href={`/review/${report.id}`}
-                          className="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1 bg-sky-50 px-3 py-1 rounded-lg border border-sky-200"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" /> Edit / Human Verification
-                        </Link>
+                        <div className="flex items-center space-x-2">
+                          {report.fileUrl && (
+                            <a
+                              href={report.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-lg border border-slate-300 flex items-center gap-1.5 transition-all"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-sky-600" /> View Original Document
+                            </a>
+                          )}
+
+                          <Link
+                            href={`/review/${report.id}`}
+                            className="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1 bg-sky-50 px-3 py-1 rounded-lg border border-sky-200"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" /> Edit / Verify
+                          </Link>
+                        </div>
                       </div>
+
 
                     </motion.div>
                   )}
