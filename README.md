@@ -1,6 +1,6 @@
 # CareLens AI - AI-First Health Intelligence Platform for Remote Family Caregivers
 
-![CareLens AI Cover](https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=1200)
+
 
 **CareLens AI** is an AI-powered health intelligence platform designed for adult children living in another city who need to monitor and understand their aging parents' and family members' health journey—without manually sorting through dozens of medical reports from multiple hospitals and doctors.
 
