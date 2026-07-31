@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,11 +10,12 @@ import {
   Sparkles,
   CheckCircle2,
   FileCheck,
-  Zap,
   Cpu,
   Copy,
   AlertTriangle,
-  Info
+  Info,
+  RefreshCw,
+  Key
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 import { MedicalReport } from '@/types/medical';
@@ -28,7 +29,8 @@ export const ReportUploader: React.FC = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [lastAiMode, setLastAiMode] = useState<'gemini' | 'simulator' | null>(null);
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Duplicate detection state
   const [duplicateMatch, setDuplicateMatch] = useState<{
@@ -41,11 +43,25 @@ export const ReportUploader: React.FC = () => {
 
   const aiSteps = [
     { title: 'Scanning Document & OCR Layout', desc: 'Parsing doctor handwriting, timestamps, and header seals...' },
-    { title: 'Extracting Medical Entities', desc: 'Structuring Diagnoses, Medicines, Dosages, and Lab Parameters...' },
-    { title: 'Cross-Referencing Historical Reports', desc: `Comparing with previous visits for ${activeParentProfile.name}...` },
-    { title: 'Calculating Confidence & Conflict Detection', desc: 'Validating field confidence scores and multi-doctor interactions...' },
-    { title: 'Synthesizing Caregiver Summary', desc: 'Generating plain-English change explanation and trend highlights...' },
+    { title: 'Calling Gemini 2.5 Flash API', desc: 'Sending image bytes to Gemini API for structured JSON extraction...' },
+    { title: 'Structuring Diagnoses & Medicines', desc: 'Parsing diagnoses, active dosages, and lab parameters...' },
+    { title: 'Cross-Referencing Parent History', desc: `Checking previous visits for ${activeParentProfile.name}...` },
+    { title: 'Synthesizing Caregiver Summary', desc: 'Generating continuous health narrative and safety disclaimers...' },
   ];
+
+  useEffect(() => {
+    checkApiKeyStatus();
+  }, []);
+
+  const checkApiKeyStatus = async () => {
+    try {
+      const res = await fetch('/api/health-check');
+      const data = await res.json();
+      setHasApiKey(Boolean(data.hasApiKey));
+    } catch {
+      setHasApiKey(false);
+    }
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -74,6 +90,7 @@ export const ReportUploader: React.FC = () => {
 
   const processFileSelection = (file: File) => {
     setSelectedFile(file);
+    setApiError(null);
     const reader = new FileReader();
     reader.onloadend = () => {
       setFilePreview(reader.result as string);
@@ -81,13 +98,19 @@ export const ReportUploader: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleStartAnalysis = async (sampleType?: string) => {
+  const handleStartAnalysis = async () => {
+    if (!filePreview) {
+      setApiError('Please select or capture a medical document photo before starting analysis.');
+      return;
+    }
+
     setIsProcessing(true);
+    setApiError(null);
     setCurrentStep(0);
 
     for (let i = 0; i < aiSteps.length; i++) {
       setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 400));
     }
 
     try {
@@ -96,9 +119,8 @@ export const ReportUploader: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileData: filePreview || null,
+          fileData: filePreview,
           fileName: selectedFile?.name || 'Medical_Report.jpg',
-          sampleType: sampleType || 'prescription',
           parentId: activeParentProfile.id,
           existingHistory: parentReports,
         }),
@@ -107,11 +129,11 @@ export const ReportUploader: React.FC = () => {
       const data = await response.json();
       if (data.success && data.report) {
         const newReport: MedicalReport = data.report;
-        setLastAiMode(data.aiMode);
 
-        // Check for duplicate reports (Requirement 10: Duplicate Report Detection)
+        // Check for duplicate report detection
         const duplicate = parentReports.find(
           (r) =>
+            r.doctorName !== 'Not detected' &&
             r.doctorName.toLowerCase() === newReport.doctorName.toLowerCase() &&
             r.visitDate === newReport.visitDate
         );
@@ -126,12 +148,12 @@ export const ReportUploader: React.FC = () => {
         setIsProcessing(false);
         router.push(`/review/${newReport.id}`);
       } else {
-        throw new Error(data.error || 'Failed to process report');
+        throw new Error(data.error || 'Unable to analyze this report.');
       }
-    } catch (err) {
-      console.error('Error analyzing report:', err);
+    } catch (err: any) {
+      console.error('Error analyzing report with Gemini:', err);
       setIsProcessing(false);
-      alert('Error analyzing report. Please try again.');
+      setApiError(err.message || 'Gemini API request failed. Please check your API key and try again.');
     }
   };
 
@@ -155,39 +177,107 @@ export const ReportUploader: React.FC = () => {
     }
   };
 
+  // MISSING GEMINI_API_KEY SCREEN (Requirement 4)
+  if (hasApiKey === false) {
+    return (
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-3xl p-6 sm:p-8 space-y-5 text-amber-950 shadow-md">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0 shadow-2xs">
+              <Key className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-lg font-extrabold text-amber-950">
+                Gemini API Key is Not Configured
+              </h2>
+              <p className="text-xs text-amber-900 font-semibold leading-relaxed">
+                CareLens AI requires a valid <code className="bg-amber-100 px-2 py-0.5 rounded text-amber-950">GEMINI_API_KEY</code> environment variable to perform real medical document extraction. Fake/simulated fallbacks have been permanently disabled.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 border border-amber-300 space-y-3 text-xs text-slate-800 shadow-2xs">
+            <h3 className="font-bold uppercase tracking-wider text-amber-900 text-[11px]">
+              Setup Instructions:
+            </h3>
+            <ol className="list-decimal list-inside space-y-2 text-slate-700 font-medium">
+              <li>
+                Create a file named <code className="bg-slate-100 font-bold px-2 py-0.5 rounded text-sky-800">.env.local</code> in your project root directory.
+              </li>
+              <li>
+                Add your Google Gemini API Key:
+                <div className="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-[11px] mt-1 select-all">
+                  GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+                </div>
+              </li>
+              <li>Restart your Next.js development server (<code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-800">npm run dev</code>).</li>
+            </ol>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[11px] text-amber-800 font-medium">
+              Get an API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold">Google AI Studio</a>.
+            </span>
+            <button
+              onClick={checkApiKeyStatus}
+              className="px-4 py-2 bg-amber-200 hover:bg-amber-300 text-amber-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Re-check API Key
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       
-      {/* Header with explicit AI Mode status badge */}
+      {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-700 border border-slate-200 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-sky-600" /> AI Medical Vision Engine
+            <Sparkles className="w-3.5 h-3.5 text-sky-600" /> Gemini 2.5 Flash AI Engine
           </span>
 
-          {lastAiMode && (
-            <span
-              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
-                lastAiMode === 'gemini'
-                  ? 'bg-sky-100 text-sky-800 border-sky-300'
-                  : 'bg-amber-100 text-amber-800 border-amber-300'
-              }`}
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              {lastAiMode === 'gemini' ? 'Gemini 2.5 Flash API Active' : 'Fallback Simulator AI'}
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-800 border-emerald-300">
+            <Cpu className="w-3.5 h-3.5" /> 100% Real Gemini API Active
+          </span>
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
           Upload Report for {activeParentProfile.name}
         </h1>
         <p className="text-xs text-slate-500 max-w-xl mx-auto leading-relaxed">
-          Upload prescriptions, lab reports, scans, discharge summaries, or consultation notes. AI automatically extracts parameters, detects duplicate records, and flags doctor conflicts.
+          Upload prescriptions, lab reports, scans, discharge summaries, or consultation notes. Gemini AI will analyze the document image and extract clinical parameters.
         </p>
       </div>
 
-      {/* DUPLICATE REPORT MODAL (Requirement 10) */}
+      {/* ERROR BANNER WITH RETRY BUTTON (Requirement 3) */}
+      {apiError && (
+        <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-5 shadow-xs space-y-3">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h3 className="text-xs font-extrabold text-rose-900 uppercase tracking-wider">
+                Extraction Error
+              </h3>
+              <p className="text-xs text-rose-900 font-semibold">{apiError}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-rose-200">
+            <button
+              onClick={handleStartAnalysis}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Retry Analysis
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* DUPLICATE REPORT MODAL */}
       <AnimatePresence>
         {duplicateMatch && (
           <motion.div
@@ -208,8 +298,8 @@ export const ReportUploader: React.FC = () => {
                   "This report appears to have already been uploaded."
                 </p>
                 <p className="text-[11px] text-amber-800">
-                  Existing report recorded on <strong className="text-amber-950">{duplicateMatch.existingReport.visitDate}</strong> with{' '}
-                  <strong className="text-amber-950">{duplicateMatch.existingReport.doctorName}</strong> ({duplicateMatch.existingReport.doctorSpecialty}).
+                  Existing record on <strong className="text-amber-950">{duplicateMatch.existingReport.visitDate}</strong> with{' '}
+                  <strong className="text-amber-950">{duplicateMatch.existingReport.doctorName}</strong>.
                 </p>
               </div>
             </div>
@@ -217,21 +307,21 @@ export const ReportUploader: React.FC = () => {
             <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-amber-200">
               <button
                 onClick={() => handleDuplicateAction('cancel')}
-                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition-all"
+                className="px-4 py-2 bg-white text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition-all"
               >
                 Cancel
               </button>
 
               <button
                 onClick={() => handleDuplicateAction('keep')}
-                className="px-4 py-2 bg-amber-200 hover:bg-amber-300 text-amber-950 rounded-xl text-xs font-bold border border-amber-400 transition-all"
+                className="px-4 py-2 bg-amber-200 text-amber-950 rounded-xl text-xs font-bold border border-amber-400 transition-all"
               >
                 Keep Both
               </button>
 
               <button
                 onClick={() => handleDuplicateAction('replace')}
-                className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
+                className="px-5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
               >
                 Replace Existing
               </button>
@@ -287,10 +377,10 @@ export const ReportUploader: React.FC = () => {
 
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-slate-900">
-                    {selectedFile ? selectedFile.name : 'Drag & drop medical report here'}
+                    {selectedFile ? selectedFile.name : 'Drag & drop medical report photo/PDF here'}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Supports high-resolution photos, prescriptions, lab PDFs, imaging scans (PNG, JPG, PDF)
+                    Upload prescription notes, hospital lab prints, scans, or discharge summaries (PNG, JPG, PDF)
                   </p>
                 </div>
 
@@ -303,7 +393,7 @@ export const ReportUploader: React.FC = () => {
                     }}
                     className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2"
                   >
-                    <FileText className="w-4 h-4" /> Browse Files
+                    <FileText className="w-4 h-4" /> Browse Medical File
                   </button>
 
                   <button
@@ -314,7 +404,7 @@ export const ReportUploader: React.FC = () => {
                     }}
                     className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-300 transition-all flex items-center gap-2"
                   >
-                    <Camera className="w-4 h-4 text-sky-700" /> Device Camera Scan
+                    <Camera className="w-4 h-4 text-sky-700" /> Device Camera Photo
                   </button>
                 </div>
               </div>
@@ -326,63 +416,18 @@ export const ReportUploader: React.FC = () => {
                     <div>
                       <p className="text-xs font-bold text-slate-900">{selectedFile.name}</p>
                       <p className="text-[11px] text-slate-500">
-                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI categorization
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for Gemini API analysis
                       </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => handleStartAnalysis()}
-                    className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center gap-2 transition-all"
+                    onClick={handleStartAnalysis}
+                    className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 transition-all"
                   >
-                    <Sparkles className="w-4 h-4" /> Extract & Categorize
+                    <Sparkles className="w-4 h-4" /> Analyze with Gemini AI
                   </button>
                 </div>
               )}
-
-              {/* Demo Preset Scans */}
-              <div className="border-t border-slate-200 pt-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-600" /> Instant Demo Scans
-                  </span>
-                  <span className="text-[10px] text-slate-400">1-Click Automated Processing</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button
-                    onClick={() => handleStartAnalysis('prescription')}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-sky-500 text-left transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900 group-hover:text-sky-700">Prescription Scan</span>
-                      <span className="text-[10px] font-semibold text-sky-800 bg-sky-100 px-1.5 py-0.5 rounded">95% Conf</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">Dr. Thorne • Metformin 1000mg dosage change</p>
-                  </button>
-
-                  <button
-                    onClick={() => handleStartAnalysis('lab')}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-amber-400 text-left transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900 group-hover:text-amber-700">Lab Panel Scan</span>
-                      <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">96% Conf</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">HbA1c 7.9% & Creatinine 1.1 mg/dL</p>
-                  </button>
-
-                  <button
-                    onClick={() => handleStartAnalysis('low_confidence')}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-rose-400 text-left transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900 group-hover:text-rose-700">Handwritten / Low Conf</span>
-                      <span className="text-[10px] font-semibold text-rose-800 bg-rose-100 px-1.5 py-0.5 rounded">74% Review</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">Triggers manual review mode & NSAID warning</p>
-                  </button>
-                </div>
-              </div>
 
             </motion.div>
           ) : (
@@ -394,8 +439,8 @@ export const ReportUploader: React.FC = () => {
             >
               <div className="w-12 h-12 rounded-full border-3 border-sky-600 border-t-transparent animate-spin mx-auto" />
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-900">Processing Medical Report</h3>
-                <p className="text-xs text-slate-500">Extracting clinical parameters and cross-referencing parent history...</p>
+                <h3 className="text-lg font-bold text-slate-900">Gemini AI Analyzing Document</h3>
+                <p className="text-xs text-slate-500">Sending report bytes to Gemini 2.5 Flash for clinical entity extraction...</p>
               </div>
 
               <div className="max-w-md mx-auto space-y-2.5 text-left bg-slate-50 border border-slate-200 p-4 rounded-xl">
@@ -430,11 +475,10 @@ export const ReportUploader: React.FC = () => {
           <Info className="w-4 h-4 text-sky-600" /> Responsible AI Disclaimers & Limitations
         </div>
         <p className="text-[11px] text-slate-500 leading-relaxed">
-          CareLens AI parses handwriting and digital scans but requires human verification for low-confidence outputs (&lt;80%). AI predictions do not constitute medical advice or replace professional healthcare consultation.
+          CareLens AI parses handwriting and digital scans via Gemini 2.5 Flash but requires human verification for low-confidence outputs (&lt;80%). AI predictions do not constitute medical advice or replace professional healthcare consultation.
         </p>
       </div>
 
     </div>
   );
 };
-

@@ -6,12 +6,16 @@ import { ParentProfile } from '@/types/medical';
 import { getMissingRecordsForParent } from '@/lib/demoData';
 import Link from 'next/link';
 
+import { useMedical } from '@/context/MedicalContext';
+
 interface Props {
   parentProfile: ParentProfile;
 }
 
 export const MissingRecordsCard: React.FC<Props> = ({ parentProfile }) => {
-  const missingAlerts = getMissingRecordsForParent(parentProfile);
+  const { reports } = useMedical();
+  const missingAlerts = getMissingRecordsForParent(parentProfile, reports);
+
 
   if (missingAlerts.length === 0) return null;
 

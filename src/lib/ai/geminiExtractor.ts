@@ -38,7 +38,8 @@ export function compareAndSynthesizeReport(
   // 1. Compare Medications across all doctors & reports
   const newMedicines: Medication[] = (extracted.medicines || []).map((med) => {
     const medName = med.name || 'Unspecified Medication';
-    const confidence = med.confidence ?? Math.floor(Math.random() * 20) + 80;
+    const confidence = med.confidence ?? 85;
+
 
     // Find in previous reports
     let prevMed: Medication | undefined;

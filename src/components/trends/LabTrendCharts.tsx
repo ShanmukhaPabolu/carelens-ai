@@ -62,19 +62,22 @@ export const LabTrendCharts: React.FC = () => {
     })
     .filter(Boolean);
 
-  const weightData = [
-    { date: '2025-10-10', value: 68 },
-    { date: '2026-01-20', value: 67 },
-    { date: '2026-05-02', value: 66 },
-    { date: '2026-07-18', value: 65 },
-  ];
+  const weightData = sortedReports
+    .map((r) => {
+      const match = r.labResults.find((l) => l.testName.toLowerCase().includes('weight'));
+      return match ? { date: r.visitDate, value: match.value, doctor: r.doctorName } : null;
+    })
+    .filter(Boolean);
 
-  const liverData = [
-    { date: '2025-10-10', value: 24 },
-    { date: '2026-01-20', value: 26 },
-    { date: '2026-05-02', value: 25 },
-    { date: '2026-07-18', value: 28 },
-  ];
+  const liverData = sortedReports
+    .map((r) => {
+      const match = r.labResults.find(
+        (l) => l.testName.toLowerCase().includes('alt') || l.testName.toLowerCase().includes('ast') || l.testName.toLowerCase().includes('sgpt')
+      );
+      return match ? { date: r.visitDate, value: match.value, doctor: r.doctorName } : null;
+    })
+    .filter(Boolean);
+
 
   const getAIInsightForTab = () => {
     switch (activeTab) {
@@ -241,8 +244,23 @@ export const LabTrendCharts: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Interactive Chart Container */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+      {/* Empty State Check */}
+      {reports.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 shadow-xs space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center mx-auto">
+            <LineChart className="w-6 h-6" />
+          </div>
+          <div className="space-y-1 max-w-md mx-auto">
+            <h3 className="text-base font-bold text-slate-900">No lab trends available yet</h3>
+            <p className="text-xs text-slate-500">
+              Upload blood tests, HbA1c panels, or metabolic lab reports for {activeParentProfile.name} to view longitudinal trend charts and AI biomarker insights.
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Main Interactive Chart Container */
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+
         
         {/* Chart Header Info */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -356,9 +374,10 @@ export const LabTrendCharts: React.FC = () => {
           </div>
         </div>
 
-      </div>
-
+        </div>
+      )}
     </div>
   );
 };
+
 

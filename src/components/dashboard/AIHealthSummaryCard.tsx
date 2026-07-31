@@ -21,16 +21,16 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
 }) => {
   const storyNarrative = generateAIHealthStory(parentProfile, reports);
 
-  if (!latestReport) {
+  if (!latestReport || reportsCount === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-slate-500 shadow-sm space-y-3">
         <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center mx-auto">
           <Sparkles className="w-6 h-6" />
         </div>
         <div className="space-y-1 max-w-md mx-auto">
-          <h2 className="text-base font-bold text-slate-900">AI Health Story Preview</h2>
-          <p className="text-xs text-slate-500">
-            Upload {parentProfile.name}'s prescriptions, lab reports, or discharge summaries to let AI synthesize their complete continuous health narrative.
+          <h2 className="text-base font-bold text-slate-900">AI Health Summary</h2>
+          <p className="text-xs text-slate-500 font-medium">
+            Upload your first medical report to generate an AI Health Summary.
           </p>
         </div>
         <Link
@@ -42,6 +42,7 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
       </div>
     );
   }
+
 
   const medChanges = latestReport.changeHighlights.filter((c) => c.category === 'medicine');
   const labChanges = latestReport.changeHighlights.filter((c) => c.category === 'lab');

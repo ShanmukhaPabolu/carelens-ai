@@ -109,10 +109,30 @@ export const HealthTimeline: React.FC = () => {
         </div>
       </div>
 
-      {/* Vertical Connected Timeline Stream */}
-      <div className="relative border-l-2 border-sky-200 ml-4 sm:ml-8 pl-6 sm:pl-8 space-y-8">
-        
-        {filteredReports.map((report, idx) => {
+      {/* Empty State Check */}
+      {filteredReports.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 shadow-xs space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center mx-auto">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div className="space-y-1 max-w-md mx-auto">
+            <h3 className="text-base font-bold text-slate-900">No medical history available yet</h3>
+            <p className="text-xs text-slate-500">
+              Upload a prescription, lab test, or consultation note to start building {activeParentProfile.name}'s connected medical timeline.
+            </p>
+          </div>
+          <Link
+            href="/upload"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+          >
+            Upload Medical Report
+          </Link>
+        </div>
+      ) : (
+        /* Vertical Connected Timeline Stream */
+        <div className="relative border-l-2 border-sky-200 ml-4 sm:ml-8 pl-6 sm:pl-8 space-y-8">
+          {filteredReports.map((report, idx) => {
+
           const isExpanded = expandedId === report.id;
           const hasConflicts = (report.doctorConflicts?.length || 0) > 0;
           const isNeedsReview = report.needsReview;
@@ -353,9 +373,10 @@ export const HealthTimeline: React.FC = () => {
             </div>
           );
         })}
-
       </div>
+      )}
     </div>
   );
 };
+
 

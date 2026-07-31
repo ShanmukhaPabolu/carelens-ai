@@ -1,5 +1,5 @@
 import { ParentProfile, MedicalReport, FollowUpItem, CaregiverUser } from '../types/medical';
-import { INITIAL_PARENT_PROFILES, INITIAL_REPORTS, INITIAL_FOLLOWUPS } from './demoData';
+import { INITIAL_PARENT_PROFILES } from './demoData';
 
 const STORAGE_KEYS = {
   PROFILES: 'carelens_parent_profiles',
@@ -46,19 +46,18 @@ export const saveStoredActiveParentId = (id: string): void => {
 };
 
 export const getStoredReports = (): MedicalReport[] => {
-  if (!isBrowser) return INITIAL_REPORTS;
+  if (!isBrowser) return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.REPORTS);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(INITIAL_REPORTS));
-      return INITIAL_REPORTS;
+      return [];
     }
     const reports: MedicalReport[] = JSON.parse(raw);
     return reports.sort(
       (a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime()
     );
   } catch {
-    return INITIAL_REPORTS;
+    return [];
   }
 };
 
@@ -107,19 +106,22 @@ export const deleteReportFromStore = (reportId: string): void => {
   const existing = getStoredReports();
   const updated = existing.filter((r) => r.id !== reportId);
   saveStoredReports(updated);
+  
+  const followUps = getStoredFollowUps();
+  const updatedFollowUps = followUps.filter((f) => f.reportId !== reportId);
+  saveStoredFollowUps(updatedFollowUps);
 };
 
 export const getStoredFollowUps = (): FollowUpItem[] => {
-  if (!isBrowser) return INITIAL_FOLLOWUPS;
+  if (!isBrowser) return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.FOLLOWUPS);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.FOLLOWUPS, JSON.stringify(INITIAL_FOLLOWUPS));
-      return INITIAL_FOLLOWUPS;
+      return [];
     }
     return JSON.parse(raw);
   } catch {
-    return INITIAL_FOLLOWUPS;
+    return [];
   }
 };
 
@@ -133,13 +135,22 @@ export const saveStoredFollowUps = (followUps: FollowUpItem[]): void => {
   }
 };
 
-export const getStoredCaregiverUser = (): CaregiverUser | null => {
-  if (!isBrowser) return null;
+export const getStoredCaregiverUser = (): CaregiverUser => {
+  if (!isBrowser) return { fullName: 'Adult Child (Caregiver)', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.USER);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) {
+      const defaultUser: CaregiverUser = {
+        fullName: 'Adult Child (Caregiver)',
+        email: 'caregiver@carelens.ai',
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(defaultUser));
+      return defaultUser;
+    }
+    return JSON.parse(raw);
   } catch {
-    return null;
+    return { fullName: 'Adult Child (Caregiver)', email: 'caregiver@carelens.ai', createdAt: new Date().toISOString() };
   }
 };
 
@@ -153,15 +164,18 @@ export const saveStoredCaregiverUser = (user: CaregiverUser): void => {
   }
 };
 
-export const resetAllDataToDemo = (): void => {
+export const clearAllData = (): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(INITIAL_PARENT_PROFILES));
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_PARENT, 'parent_mother');
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(INITIAL_REPORTS));
-    localStorage.setItem(STORAGE_KEYS.FOLLOWUPS, JSON.stringify(INITIAL_FOLLOWUPS));
+    localStorage.removeItem(STORAGE_KEYS.REPORTS);
+    localStorage.removeItem(STORAGE_KEYS.FOLLOWUPS);
+    localStorage.removeItem(STORAGE_KEYS.PROFILES);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_PARENT);
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
-    console.error('Error resetting demo data:', e);
+    console.error('Error clearing data:', e);
   }
 };
+
+export const resetAllDataToDemo = clearAllData;
+
