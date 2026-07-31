@@ -522,18 +522,20 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
             />
           </div>
 
-          {/* RESPONSIBLE AI DISCLOSURE NOTICE */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1.5 text-xs text-slate-600">
-            <div className="flex items-center gap-1.5 font-bold text-slate-800">
-              <Info className="w-4 h-4 text-sky-600" /> Responsible AI Disclaimers & Guidelines
+          {/* RESPONSIBLE AI DISCLOSURE NOTICE (Requirement 5) */}
+          <div className="bg-amber-50/70 border border-amber-300 rounded-2xl p-5 space-y-2 text-xs text-amber-950">
+            <div className="flex items-center gap-2 font-extrabold text-amber-950 uppercase tracking-wider text-[11px]">
+              <Info className="w-4 h-4 text-amber-700" /> Responsible AI Disclaimers & Operational Guidelines
             </div>
-            <ul className="space-y-1 text-[11px] text-slate-500 list-disc list-inside leading-relaxed">
-              <li>AI may incorrectly extract handwritten physician notes or low-resolution scans.</li>
-              <li>Always verify important medical dosages and lab values against original source documents.</li>
-              <li>Uncertain or low-confidence values require caregiver confirmation before committing to timeline.</li>
-              <li>CareLens AI does not replace professional medical advice or clinical diagnosis.</li>
+            <ul className="space-y-1 text-xs text-amber-900 list-disc list-inside leading-relaxed font-semibold">
+              <li>AI may incorrectly read handwritten text, doctor signatures, or stamp seals.</li>
+              <li>AI can misidentify doctors, clinic names, or medication spellings.</li>
+              <li>Low-confidence fields (&lt;80%) highlighted in yellow always require manual user verification before saving.</li>
+              <li>CareLens AI does not provide medical advice, diagnostic evaluations, or treatment prescriptions.</li>
+              <li>Caregivers and patients should always consult certified healthcare professionals regarding medical decisions.</li>
             </ul>
           </div>
+
 
         </div>
 

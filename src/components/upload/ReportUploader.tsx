@@ -42,12 +42,13 @@ export const ReportUploader: React.FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const aiSteps = [
-    { title: 'Scanning Document & OCR Layout', desc: 'Parsing doctor handwriting, timestamps, and header seals...' },
-    { title: 'Calling Gemini 2.5 Flash API', desc: 'Sending image bytes to Gemini API for structured JSON extraction...' },
-    { title: 'Structuring Diagnoses & Medicines', desc: 'Parsing diagnoses, active dosages, and lab parameters...' },
-    { title: 'Cross-Referencing Parent History', desc: `Checking previous visits for ${activeParentProfile.name}...` },
-    { title: 'Synthesizing Caregiver Summary', desc: 'Generating continuous health narrative and safety disclaimers...' },
+    { title: 'AI successfully analyzed your report.', desc: 'Structured JSON extracted via Gemini 2.5 Flash API...' },
+    { title: 'Added to Health Timeline.', desc: 'Constructed new clinical milestone entry for timeline...' },
+    { title: 'Health Summary Updated.', desc: 'Synthesized updated continuous AI health story...' },
+    { title: 'Lab Trends Updated.', desc: 'Extracted biomarker levels for longitudinal charts...' },
+    { title: 'Doctor Conflicts Checked.', desc: 'Evaluated dosage conflicts & NSAID contraindications...' },
   ];
+
 
   useEffect(() => {
     checkApiKeyStatus();

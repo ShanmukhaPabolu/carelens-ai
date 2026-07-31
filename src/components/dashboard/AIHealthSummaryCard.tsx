@@ -47,29 +47,39 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
   const medChanges = latestReport.changeHighlights.filter((c) => c.category === 'medicine');
   const labChanges = latestReport.changeHighlights.filter((c) => c.category === 'lab');
 
+  const hasConflicts = reports.some((r) => (r.doctorConflicts?.length || 0) > 0);
+  const needsReview = reports.some((r) => r.needsReview);
+
+  const statusBadge = hasConflicts
+    ? { label: 'Doctor Conflict Alert', color: 'bg-rose-100 text-rose-800 border-rose-300', dot: 'bg-rose-500' }
+    : needsReview
+    ? { label: 'Verification Pending', color: 'bg-amber-100 text-amber-800 border-amber-300', dot: 'bg-amber-500' }
+    : { label: 'Stable', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', dot: 'bg-emerald-500' };
+
   return (
-    <div className="rounded-3xl bg-gradient-to-br from-white via-sky-50/40 to-slate-50 border border-sky-100 p-6 sm:p-7 shadow-xs space-y-5 relative overflow-hidden">
+    <div className="rounded-3xl bg-gradient-to-br from-white via-sky-50/50 to-slate-50 border border-sky-200/80 p-6 sm:p-7 shadow-sm space-y-5 relative overflow-hidden">
       
-      {/* Background Subtle Accent Pill */}
+      {/* Background Subtle Accent */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-sky-600/[0.03] rounded-full blur-3xl pointer-events-none -z-0" />
 
       {/* Header Banner */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/80 relative z-10">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-xs">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-base font-extrabold text-slate-900 tracking-tight">
-                AI HEALTH STORY
+                {parentProfile.name}'s Health Status
               </h1>
-              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-sky-600" /> Auto-Updated ({reportsCount} Reports Merged)
+              <span className={`text-xs font-extrabold px-3 py-0.5 rounded-full border flex items-center gap-1.5 ${statusBadge.color}`}>
+                <span className={`w-2 h-2 rounded-full ${statusBadge.dot}`} />
+                {statusBadge.label}
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Continuous longitudinal health narrative for <strong className="text-slate-800">{parentProfile.name}</strong>
+              AI Continuous Health Story • Synthesized from <strong className="text-slate-800">{reportsCount} Visit Records</strong>
             </p>
           </div>
         </div>
@@ -81,6 +91,7 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
           View Connected Timeline <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
+
 
       {/* HERO STORY NARRATIVE BOX */}
       <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-5 border border-sky-200/80 shadow-xs space-y-2 relative z-10">

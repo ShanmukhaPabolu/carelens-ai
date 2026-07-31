@@ -114,7 +114,8 @@ export function compareAndSynthesizeReport(
   const newLabResults: LabResult[] = (extracted.labResults || []).map((lab) => {
     const testName = lab.testName || 'Lab Test';
     const val = lab.value ?? 0;
-    const confidence = lab.confidence ?? Math.floor(Math.random() * 15) + 85;
+    const confidence = lab.confidence ?? 88;
+
     
     // Find previous lab result
     let prevLab: LabResult | undefined;

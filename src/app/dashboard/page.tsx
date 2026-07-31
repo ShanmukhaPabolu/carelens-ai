@@ -130,10 +130,6 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
 
-      
-      {/* 1. PARENT HEALTH STATUS CARDS (Answers "How are my parents today?" via Status Cards) */}
-      <ParentHealthStatusGrid />
-
       {/* Emergency Modal Trigger Bar & Profile Header */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="flex items-center space-x-4">
@@ -179,10 +175,7 @@ export default function DashboardPage() {
         <EmergencyCardModal onClose={() => setShowEmergencyModal(false)} />
       )}
 
-      {/* 2. Doctor Conflicts Alert */}
-      <DoctorConflictAlert conflicts={allConflicts} />
-
-      {/* 3. AI Caregiver Health Executive Hero Story */}
+      {/* 1. HERO SECTION: AI HEALTH STORY (Requirement 1) */}
       <AIHealthSummaryCard
         parentProfile={activeParentProfile}
         reports={reports}
@@ -190,8 +183,15 @@ export default function DashboardPage() {
         reportsCount={reports.length}
       />
 
-      {/* 4. Missing Health Records Alert Card (Requirement 11) */}
+      {/* 2. Doctor Conflicts Alert */}
+      <DoctorConflictAlert conflicts={allConflicts} />
+
+      {/* 3. PARENT HEALTH STATUS OVERVIEW (Requirement 3: Answers "How are my parents today?") */}
+      <ParentHealthStatusGrid />
+
+      {/* 4. Missing Health Records Alert Card */}
       <MissingRecordsCard parentProfile={activeParentProfile} />
+
 
       {/* DYNAMIC BIOMARKER METRICS GRID */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

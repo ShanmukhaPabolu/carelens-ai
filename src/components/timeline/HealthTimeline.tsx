@@ -176,8 +176,14 @@ export const HealthTimeline: React.FC = () => {
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-900">{report.doctorSpecialty} Visit</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-extrabold text-slate-900">
+                          {report.diagnoses && report.diagnoses.length > 0
+                            ? `Diagnosed: ${report.diagnoses[0]}`
+                            : report.medicines && report.medicines.length > 0
+                            ? `Prescription Event: ${report.medicines[0].name}`
+                            : `${report.doctorSpecialty} Clinical Visit`}
+                        </h3>
                         {getCategoryBadge(report.reportType)}
                         {hasConflicts && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
@@ -190,10 +196,13 @@ export const HealthTimeline: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
-                        <Stethoscope className="w-3.5 h-3.5 text-sky-600" /> <strong className="text-slate-800">{report.doctorName}</strong> • <Building2 className="w-3 h-3 text-slate-400" /> {report.hospital}
+                      <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>Doctor: <strong className="text-slate-800">{report.doctorName}</strong> ({report.doctorSpecialty})</span>
+                        <span>•</span>
+                        <span>Hospital: <strong className="text-slate-800">{report.hospital}</strong></span>
                       </p>
                     </div>
+
                   </div>
 
                   {/* Highlights Preview */}
