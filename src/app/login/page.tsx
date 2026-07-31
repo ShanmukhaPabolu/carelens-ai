@@ -38,12 +38,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-xs space-y-6">
         
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold mx-auto shadow-xs">
             <Activity className="w-6 h-6" />
           </div>
           <div>
@@ -70,7 +70,7 @@ export default function LoginPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g. Rohan Devi"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
               />
             </div>
           </div>
@@ -84,14 +84,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. rohan@example.com"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
           >
             <span>Continue to Caregiver Dashboard</span>
             <ArrowRight className="w-4 h-4" />
