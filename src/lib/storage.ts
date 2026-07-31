@@ -25,6 +25,24 @@ export const getStoredProfiles = (): ParentProfile[] => {
   }
 };
 
+export const saveStoredProfiles = (profiles: ParentProfile[]): void => {
+  if (!isBrowser) return;
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    window.dispatchEvent(new Event('carelens_data_updated'));
+  } catch (e) {
+    console.error('Error saving parent profiles:', e);
+  }
+};
+
+export const addProfileToStore = (newProfile: ParentProfile): void => {
+  const existing = getStoredProfiles();
+  const updated = [...existing, newProfile];
+  saveStoredProfiles(updated);
+};
+
+
+
 export const getStoredActiveParentId = (): string => {
   if (!isBrowser) return 'parent_mother';
   try {

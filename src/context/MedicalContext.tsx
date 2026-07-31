@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ParentProfile, MedicalReport, FollowUpItem, CaregiverUser } from '../types/medical';
 import {
   getStoredProfiles,
+  saveStoredProfiles,
   getStoredActiveParentId,
   saveStoredActiveParentId,
   getStoredReports,
@@ -18,11 +19,13 @@ import {
   resetAllDataToDemo,
 } from '../lib/storage';
 
+
 interface MedicalContextType {
   profiles: ParentProfile[];
   activeParentId: string;
   activeParentProfile: ParentProfile;
   setActiveParentId: (id: string) => void;
+  addParentProfile: (profile: ParentProfile) => void;
   
   allReports: MedicalReport[];
   reports: MedicalReport[]; // Filtered by active parent
@@ -32,6 +35,7 @@ interface MedicalContextType {
   
   caregiverUser: CaregiverUser | null;
   setCaregiverUser: (user: CaregiverUser) => void;
+  logoutCaregiverUser: () => void;
 
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -43,6 +47,7 @@ interface MedicalContextType {
   resetDemoData: () => void;
   getReportById: (id: string) => MedicalReport | undefined;
 }
+
 
 const MedicalContext = createContext<MedicalContextType | undefined>(undefined);
 
@@ -118,6 +123,22 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return allReports.find((r) => r.id === id);
   };
 
+  const handleAddParentProfile = (newProfile: ParentProfile) => {
+    const updated = [...profiles, newProfile];
+    saveStoredProfiles(updated);
+    setProfiles(updated);
+    saveStoredActiveParentId(newProfile.id);
+    setActiveParentIdState(newProfile.id);
+  };
+
+  const handleLogoutCaregiverUser = () => {
+    setCaregiverUserState(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('carelens_caregiver_user');
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <MedicalContext.Provider
       value={{
@@ -125,12 +146,14 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
         activeParentId,
         activeParentProfile,
         setActiveParentId,
+        addParentProfile: handleAddParentProfile,
         allReports,
         reports: filteredReports,
         allFollowUps,
         followUps: filteredFollowUps,
         caregiverUser,
         setCaregiverUser,
+        logoutCaregiverUser: handleLogoutCaregiverUser,
         searchQuery,
         setSearchQuery,
         addReport: handleAddReport,
@@ -144,6 +167,7 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
       {children}
     </MedicalContext.Provider>
   );
+
 };
 
 export const useMedical = () => {
