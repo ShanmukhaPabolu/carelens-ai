@@ -170,13 +170,14 @@ export const Navbar: React.FC = () => {
                 >
                   <Users className="w-3.5 h-3.5 text-sky-600" />
                   <div className="text-left hidden lg:block">
-                    <span className="font-bold block leading-tight">
+                    <span suppressHydrationWarning className="font-bold block leading-tight">
                       {mounted ? activeParentProfile.name : '—'}
                     </span>
-                    <span className="text-[10px] text-slate-500 block leading-none">
+                    <span suppressHydrationWarning className="text-[10px] text-slate-500 block leading-none">
                       {mounted ? activeParentProfile.relationship : ''}
                     </span>
                   </div>
+
                   <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
 
                 </button>
