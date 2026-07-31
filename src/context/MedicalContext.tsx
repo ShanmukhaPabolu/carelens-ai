@@ -1,10 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ParentProfile, MedicalReport, FollowUpItem } from '../types/medical';
+import { ParentProfile, MedicalReport, FollowUpItem, CaregiverUser } from '../types/medical';
 import {
-  getStoredParentProfile,
-  saveStoredParentProfile,
+  getStoredProfiles,
+  getStoredActiveParentId,
+  saveStoredActiveParentId,
   getStoredReports,
   saveStoredReports,
   addReportToStore,
@@ -12,16 +13,29 @@ import {
   deleteReportFromStore,
   getStoredFollowUps,
   saveStoredFollowUps,
+  getStoredCaregiverUser,
+  saveStoredCaregiverUser,
   resetAllDataToDemo,
 } from '../lib/storage';
 
 interface MedicalContextType {
-  parentProfile: ParentProfile;
-  reports: MedicalReport[];
-  followUps: FollowUpItem[];
+  profiles: ParentProfile[];
+  activeParentId: string;
+  activeParentProfile: ParentProfile;
+  setActiveParentId: (id: string) => void;
+  
+  allReports: MedicalReport[];
+  reports: MedicalReport[]; // Filtered by active parent
+  
+  allFollowUps: FollowUpItem[];
+  followUps: FollowUpItem[]; // Filtered by active parent
+  
+  caregiverUser: CaregiverUser | null;
+  setCaregiverUser: (user: CaregiverUser) => void;
+
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  updateProfile: (profile: ParentProfile) => void;
+  
   addReport: (report: MedicalReport) => void;
   updateReport: (report: MedicalReport) => void;
   deleteReport: (id: string) => void;
@@ -33,15 +47,19 @@ interface MedicalContextType {
 const MedicalContext = createContext<MedicalContextType | undefined>(undefined);
 
 export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [parentProfile, setParentProfile] = useState<ParentProfile>(getStoredParentProfile);
-  const [reports, setReports] = useState<MedicalReport[]>(getStoredReports);
-  const [followUps, setFollowUps] = useState<FollowUpItem[]>(getStoredFollowUps);
+  const [profiles, setProfiles] = useState<ParentProfile[]>(getStoredProfiles);
+  const [activeParentId, setActiveParentIdState] = useState<string>(getStoredActiveParentId);
+  const [allReports, setAllReports] = useState<MedicalReport[]>(getStoredReports);
+  const [allFollowUps, setAllFollowUps] = useState<FollowUpItem[]>(getStoredFollowUps);
+  const [caregiverUser, setCaregiverUserState] = useState<CaregiverUser | null>(getStoredCaregiverUser);
   const [searchQuery, setSearchQuery] = useState('');
 
   const refreshData = () => {
-    setParentProfile(getStoredParentProfile());
-    setReports(getStoredReports());
-    setFollowUps(getStoredFollowUps());
+    setProfiles(getStoredProfiles());
+    setActiveParentIdState(getStoredActiveParentId());
+    setAllReports(getStoredReports());
+    setAllFollowUps(getStoredFollowUps());
+    setCaregiverUserState(getStoredCaregiverUser());
   };
 
   useEffect(() => {
@@ -51,10 +69,22 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => window.removeEventListener('carelens_data_updated', handleUpdate);
   }, []);
 
-  const updateProfile = (newProfile: ParentProfile) => {
-    saveStoredParentProfile(newProfile);
-    setParentProfile(newProfile);
+  const setActiveParentId = (id: string) => {
+    saveStoredActiveParentId(id);
+    setActiveParentIdState(id);
   };
+
+  const setCaregiverUser = (user: CaregiverUser) => {
+    saveStoredCaregiverUser(user);
+    setCaregiverUserState(user);
+  };
+
+  // Filter reports & follow-ups by active parent ID
+  const activeParentProfile =
+    profiles.find((p) => p.id === activeParentId) || profiles[0];
+
+  const filteredReports = allReports.filter((r) => r.parentId === activeParentId);
+  const filteredFollowUps = allFollowUps.filter((f) => f.parentId === activeParentId);
 
   const handleAddReport = (report: MedicalReport) => {
     addReportToStore(report);
@@ -72,11 +102,11 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const markFollowUpComplete = (id: string) => {
-    const updated = followUps.map((item) =>
+    const updated = allFollowUps.map((item) =>
       item.id === id ? { ...item, status: 'completed' as const } : item
     );
     saveStoredFollowUps(updated);
-    setFollowUps(updated);
+    setAllFollowUps(updated);
   };
 
   const handleResetDemoData = () => {
@@ -85,18 +115,24 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const getReportById = (id: string) => {
-    return reports.find((r) => r.id === id);
+    return allReports.find((r) => r.id === id);
   };
 
   return (
     <MedicalContext.Provider
       value={{
-        parentProfile,
-        reports,
-        followUps,
+        profiles,
+        activeParentId,
+        activeParentProfile,
+        setActiveParentId,
+        allReports,
+        reports: filteredReports,
+        allFollowUps,
+        followUps: filteredFollowUps,
+        caregiverUser,
+        setCaregiverUser,
         searchQuery,
         setSearchQuery,
-        updateProfile,
         addReport: handleAddReport,
         updateReport: handleUpdateReport,
         deleteReport: handleDeleteReport,

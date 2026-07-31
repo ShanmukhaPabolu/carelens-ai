@@ -12,7 +12,6 @@ import {
   TrendingUp,
   Activity,
   User,
-  Heart,
   ChevronRight,
   Shield,
   Search,
@@ -23,178 +22,219 @@ import { AIHealthSummaryCard } from '@/components/dashboard/AIHealthSummaryCard'
 import { DoctorConflictAlert } from '@/components/dashboard/DoctorConflictAlert';
 
 export default function DashboardPage() {
-  const { parentProfile, reports, followUps } = useMedical();
+  const { activeParentProfile, reports, followUps, caregiverUser } = useMedical();
 
   const latestReport = reports[0];
-  const needsReviewReports = reports.filter((r) => r.needsReview);
-
-  // Extract all conflicts across reports
   const allConflicts = reports.flatMap((r) => r.doctorConflicts || []);
 
-  // Calculate Key Biomarkers from latest lab tests
-  const latestHbA1c = reports
-    .flatMap((r) => r.labResults)
-    .find((l) => l.testName.toLowerCase().includes('hba1c'));
+  // SORT REPORTS CHRONOLOGICALLY FOR DYNAMIC LAB METRICS COMPUTATION
+  const chronologicalReports = [...reports].sort(
+    (a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime()
+  );
 
-  const latestBP = reports
-    .flatMap((r) => r.labResults)
-    .find((l) => l.testName.toLowerCase().includes('systolic'));
+  // 1. DYNAMIC HbA1c METRIC
+  const hba1cHistory = chronologicalReports
+    .map((r) => {
+      const match = r.labResults.find((l) => l.testName.toLowerCase().includes('hba1c'));
+      return match ? { date: r.visitDate, value: match.value } : null;
+    })
+    .filter(Boolean);
 
-  const latestCreatinine = reports
-    .flatMap((r) => r.labResults)
-    .find((l) => l.testName.toLowerCase().includes('creatinine'));
+  const latestHbA1c = hba1cHistory[hba1cHistory.length - 1];
+  const prevHbA1c = hba1cHistory[hba1cHistory.length - 2];
+  let hba1cDeltaStr: string | null = null;
+  if (latestHbA1c && prevHbA1c) {
+    const diff = (latestHbA1c.value - prevHbA1c.value).toFixed(1);
+    hba1cDeltaStr = `${diff > '0' ? '+' : ''}${diff}% from previous test`;
+  }
+
+  // 2. DYNAMIC BLOOD PRESSURE METRIC
+  const bpHistory = chronologicalReports
+    .map((r) => {
+      const sys = r.labResults.find((l) => l.testName.toLowerCase().includes('systolic'));
+      const dia = r.labResults.find((l) => l.testName.toLowerCase().includes('diastolic'));
+      return sys && dia ? { sys: sys.value, dia: dia.value, date: r.visitDate } : null;
+    })
+    .filter(Boolean);
+
+  const latestBP = bpHistory[bpHistory.length - 1];
+
+  // 3. DYNAMIC CREATININE METRIC
+  const creatinineHistory = chronologicalReports
+    .map((r) => {
+      const match = r.labResults.find((l) => l.testName.toLowerCase().includes('creatinine'));
+      return match ? { date: r.visitDate, value: match.value, status: match.status } : null;
+    })
+    .filter(Boolean);
+
+  const latestCreatinine = creatinineHistory[creatinineHistory.length - 1];
+
+  // 4. DYNAMIC CHOLESTEROL / FASTING SUGAR METRIC
+  const lipidHistory = chronologicalReports
+    .map((r) => {
+      const match = r.labResults.find((l) => l.testName.toLowerCase().includes('cholesterol'));
+      return match ? { date: r.visitDate, value: match.value } : null;
+    })
+    .filter(Boolean);
+
+  const latestCholesterol = lipidHistory[lipidHistory.length - 1];
 
   const upcomingFollowUps = followUps.filter((f) => f.status !== 'completed').slice(0, 3);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-16">
+    <div className="max-w-7xl mx-auto space-y-6 pb-16">
       
-      {/* Parent Profile Header Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+      {/* Parent Profile Header Banner with Personalized Caregiver Greeting */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 flex items-center justify-center font-extrabold text-xl shadow-lg">
-            {parentProfile.name.charAt(0)}
+          <div className="w-12 h-12 rounded-xl bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-lg">
+            {activeParentProfile.name.charAt(0)}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                {parentProfile.name}
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                {activeParentProfile.name}
               </h1>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                {parentProfile.relationship} ({parentProfile.age} yo)
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                {activeParentProfile.relationship} ({activeParentProfile.age} yo)
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Primary Physician: <strong className="text-slate-200">{parentProfile.primaryDoctor}</strong> • {parentProfile.hospital}
+
+            {caregiverUser && (
+              <p className="text-xs text-blue-600 font-semibold mt-0.5">
+                Caregiver: {caregiverUser.fullName} ({caregiverUser.email})
+              </p>
+            )}
+
+            <p className="text-xs text-slate-500 mt-0.5">
+              Primary Physician: <strong className="text-slate-800">{activeParentProfile.primaryDoctor}</strong> • {activeParentProfile.hospital}
             </p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {parentProfile.conditions.map((cond, idx) => (
-                <span
-                  key={idx}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700"
-                >
-                  {cond}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
           <Link
             href="/upload"
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2"
           >
             <Upload className="w-4 h-4" /> Upload New Report
           </Link>
           <Link
             href="/profile"
-            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-all flex items-center gap-1.5"
           >
-            <User className="w-4 h-4 text-blue-400" /> Full Profile
+            <User className="w-4 h-4 text-blue-600" /> Parent Profile
           </Link>
         </div>
       </div>
 
-      {/* Doctor Conflicts Notification (If Any Detected) */}
+      {/* Doctor Conflicts Alert (If Any Detected) */}
       <DoctorConflictAlert conflicts={allConflicts} />
 
       {/* AI Caregiver Health Executive Summary */}
       <AIHealthSummaryCard
-        parentProfile={parentProfile}
+        parentProfile={activeParentProfile}
         latestReport={latestReport}
         reportsCount={reports.length}
       />
 
-      {/* Key Biomarker Quick Metrics Grid */}
+      {/* DYNAMIC BIOMARKER METRICS GRID (COMPUTED FROM LAB DATA) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         
-        {/* HbA1c */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 hover:border-slate-700 transition-colors">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+        {/* Dynamic HbA1c Metric */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
             HbA1c (Glycated)
-            <TrendingUp className="w-3.5 h-3.5 text-rose-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-rose-600" />
           </span>
-          <p className="text-xl font-extrabold text-rose-400">
-            {latestHbA1c ? `${latestHbA1c.value}%` : '7.8%'}
+          <p className="text-xl font-bold text-slate-900">
+            {latestHbA1c ? `${latestHbA1c.value}%` : 'No data yet'}
           </p>
-          <span className="text-[10px] text-rose-300/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 inline-block font-semibold">
-            +0.4% from May
-          </span>
+          {hba1cDeltaStr ? (
+            <span className="text-[10px] text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 inline-block font-semibold">
+              {hba1cDeltaStr}
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-400">Baseline recorded</span>
+          )}
         </div>
 
-        {/* Blood Pressure */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 hover:border-slate-700 transition-colors">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+        {/* Dynamic Blood Pressure Metric */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
             Blood Pressure
-            <Activity className="w-3.5 h-3.5 text-amber-400" />
+            <Activity className="w-3.5 h-3.5 text-amber-600" />
           </span>
-          <p className="text-xl font-extrabold text-amber-400">142/88</p>
-          <span className="text-[10px] text-amber-300/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 inline-block font-semibold">
-            Stage 1 Elevated
-          </span>
-        </div>
-
-        {/* Creatinine */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 hover:border-slate-700 transition-colors">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            Serum Creatinine
-            <Shield className="w-3.5 h-3.5 text-blue-400" />
-          </span>
-          <p className="text-xl font-extrabold text-white">
-            {latestCreatinine ? `${latestCreatinine.value} mg/dL` : '1.1 mg/dL'}
+          <p className="text-xl font-bold text-slate-900">
+            {latestBP ? `${latestBP.sys}/${latestBP.dia}` : 'No data yet'}
           </p>
-          <span className="text-[10px] text-blue-300/80 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 inline-block font-semibold">
-            Borderline High
+          <span className="text-[10px] text-slate-500">
+            {latestBP ? `Recorded ${latestBP.date}` : 'Awaiting BP scan'}
           </span>
         </div>
 
-        {/* Total Visits */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 hover:border-slate-700 transition-colors">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            Parsed History
-            <Clock className="w-3.5 h-3.5 text-indigo-400" />
+        {/* Dynamic Creatinine Metric */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+            Serum Creatinine
+            <Shield className="w-3.5 h-3.5 text-blue-600" />
           </span>
-          <p className="text-xl font-extrabold text-indigo-400">{reports.length} Reports</p>
-          <span className="text-[10px] text-indigo-300/80 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 inline-block font-semibold">
-            2024 - 2026 Timeline
+          <p className="text-xl font-bold text-slate-900">
+            {latestCreatinine ? `${latestCreatinine.value} mg/dL` : 'No data yet'}
+          </p>
+          <span className="text-[10px] text-slate-500">
+            {latestCreatinine ? `Range: 0.6 - 1.0` : 'Awaiting lab test'}
+          </span>
+        </div>
+
+        {/* Dynamic Total Cholesterol / Lipid Metric */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+            Total Cholesterol
+            <LineChart className="w-3.5 h-3.5 text-blue-600" />
+          </span>
+          <p className="text-xl font-bold text-slate-900">
+            {latestCholesterol ? `${latestCholesterol.value} mg/dL` : 'No data yet'}
+          </p>
+          <span className="text-[10px] text-slate-500">
+            {latestCholesterol ? `Target < 200` : 'Awaiting lipid panel'}
           </span>
         </div>
 
       </div>
 
-      {/* Main 2-Column Split (Recent Uploads & Timeline Preview vs. Smart Follow-ups) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main 2-Column Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left 2 Cols: Timeline & Recent Uploads */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Left 2 Cols: Timeline & Recent Reports */}
+        <div className="lg:col-span-2 space-y-4">
           
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-400" /> Recent Medical Reports Timeline
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Clock className="w-4 h-4 text-blue-600" /> Medical Reports Stream for {activeParentProfile.name}
             </h2>
             <Link
               href="/timeline"
-              className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+              className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
             >
               View All {reports.length} Reports <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {reports.slice(0, 4).map((report) => (
               <div
                 key={report.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all space-y-3"
+                className="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm hover:border-slate-300 transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center font-extrabold text-xs text-blue-400">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-blue-700">
                       {report.visitDate.substring(5, 7)}/{report.visitDate.substring(2, 4)}
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">{report.doctorSpecialty} Visit</h3>
-                      <p className="text-xs text-slate-400">
+                      <h3 className="text-xs font-bold text-slate-900">{report.doctorSpecialty} Visit</h3>
+                      <p className="text-[11px] text-slate-500">
                         {report.doctorName} • {report.hospital}
                       </p>
                     </div>
@@ -204,21 +244,21 @@ export default function DashboardPage() {
                     {report.needsReview && (
                       <Link
                         href={`/review/${report.id}`}
-                        className="text-[10px] font-bold px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 animate-pulse"
+                        className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300"
                       >
-                        <AlertTriangle className="w-3 h-3 text-amber-400" /> Needs Review
+                        Needs Review
                       </Link>
                     )}
                     <Link
                       href={`/review/${report.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition-colors"
+                      className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold border border-slate-200 transition-colors"
                     >
-                      View Extraction
+                      View
                     </Link>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+                <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                   {report.caregiverSummary}
                 </p>
               </div>
@@ -227,58 +267,57 @@ export default function DashboardPage() {
 
         </div>
 
-        {/* Right 1 Col: Follow-up & Quick Tools */}
-        <div className="space-y-6">
+        {/* Right 1 Col: Follow-up & Quick Actions */}
+        <div className="space-y-4">
           
           {/* Smart Follow-ups Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-emerald-400" /> Upcoming Follow-ups
+          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-emerald-600" /> Upcoming Follow-ups
               </h2>
-              <Link href="/follow-ups" className="text-xs text-blue-400 hover:underline">
+              <Link href="/follow-ups" className="text-xs font-semibold text-blue-600 hover:underline">
                 View All
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {upcomingFollowUps.map((item) => (
-                <div key={item.id} className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white">{item.doctorName}</span>
-                    <span className="text-blue-400 font-semibold">{item.date}</span>
+                <div key={item.id} className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-0.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                    <span>{item.doctorName}</span>
+                    <span className="text-blue-600">{item.date}</span>
                   </div>
-                  <p className="text-[11px] text-slate-400">{item.specialty} • {item.reason}</p>
+                  <p className="text-[11px] text-slate-500">{item.specialty} • {item.reason}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Quick Actions Shortcuts Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-            <h2 className="text-sm font-bold text-white">Quick Caregiver Actions</h2>
-            <div className="space-y-2">
-              <Link
-                href="/upload"
-                className="w-full p-2.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600/20 text-xs font-semibold flex items-center gap-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Add Medical Report
-              </Link>
+          {/* Quick Actions Shortcuts */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Caregiver Shortcuts</h2>
+            
+            <Link
+              href="/upload"
+              className="w-full p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Upload Report for {activeParentProfile.name}
+            </Link>
 
-              <Link
-                href="/trends"
-                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 transition-colors"
-              >
-                <LineChart className="w-4 h-4 text-emerald-400" /> Open Lab Trend Charts
-              </Link>
+            <Link
+              href="/trends"
+              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-2 transition-colors"
+            >
+              <LineChart className="w-4 h-4 text-emerald-600" /> Open Lab Trend Dashboard
+            </Link>
 
-              <Link
-                href="/search"
-                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 transition-colors"
-              >
-                <Search className="w-4 h-4 text-sky-400" /> Search Doctor Prescriptions
-              </Link>
-            </div>
+            <Link
+              href="/search"
+              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-2 transition-colors"
+            >
+              <Search className="w-4 h-4 text-slate-600" /> Search Prescriptions & Notes
+            </Link>
           </div>
 
         </div>

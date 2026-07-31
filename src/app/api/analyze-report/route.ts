@@ -5,16 +5,16 @@ import { MedicalReport } from '@/types/medical';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { fileData, fileName, sampleType, existingHistory = [] } = body;
+    const { fileData, fileName, sampleType, parentId = 'parent_mother', existingHistory = [] } = body;
 
     let extractedData: RawExtractedData;
+    let aiMode: 'gemini' | 'simulator' = 'simulator';
 
-    // Check if Gemini API key exists
     const apiKey = process.env.GEMINI_API_KEY;
+    const isValidKey = apiKey && apiKey.trim() !== '' && !apiKey.includes('your_gemini_api_key_here');
 
-    if (apiKey && fileData) {
+    if (isValidKey && fileData) {
       try {
-        // Try calling real Gemini API
         const { GoogleGenAI } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey });
         
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   "followUpDate": "YYYY-MM-DD",
   "aiConfidenceScore": 92
 }
-Assign realistic individual confidence scores (0-100) per field. If document is blurry, illegible, or handwritten, assign a lower confidence score (<80). Output ONLY valid JSON without markdown code blocks.`;
+Assign realistic confidence scores (0-100) per field. Output ONLY valid JSON without markdown code blocks.`;
 
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
@@ -72,30 +72,33 @@ Assign realistic individual confidence scores (0-100) per field. If document is 
         const rawText = response.text || '';
         const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         extractedData = JSON.parse(cleanedText);
+        aiMode = 'gemini';
       } catch (geminiErr) {
-        console.warn('Gemini API call failed or key invalid, using fallback simulator:', geminiErr);
+        console.warn('Gemini API call failed or key invalid, falling back to simulator:', geminiErr);
         extractedData = generateSimulatedExtraction(sampleType, fileName);
+        aiMode = 'simulator';
       }
     } else {
-      // Use high-fidelity AI Simulator
       extractedData = generateSimulatedExtraction(sampleType, fileName);
+      aiMode = 'simulator';
     }
 
-    // Run AI Comparison engine against historical reports
     const { processedReport, changeHighlights, doctorConflicts, caregiverSummary } =
       compareAndSynthesizeReport(extractedData, existingHistory);
 
     const fullReport: MedicalReport = {
       id: `report_${Date.now()}`,
+      parentId,
       uploadDate: new Date().toISOString(),
       visitDate: processedReport.visitDate || new Date().toISOString().split('T')[0],
-      doctorName: processedReport.doctorName || 'Dr. Aris Thorne',
-      doctorSpecialty: processedReport.doctorSpecialty || 'Endocrinology',
-      hospital: processedReport.hospital || 'Apex Heart & Metabolic Institute',
+      doctorName: processedReport.doctorName || 'Dr. Specialist',
+      doctorSpecialty: processedReport.doctorSpecialty || 'General Medicine',
+      hospital: processedReport.hospital || 'Medical Center',
       department: processedReport.department || 'Outpatient Clinic',
-      patientName: processedReport.patientName || 'Lakshmi Devi',
+      patientName: processedReport.patientName || (parentId === 'parent_father' ? 'Ramesh Devi' : 'Lakshmi Devi'),
       reportType: processedReport.reportType || 'prescription',
-      fileName: fileName || 'Uploaded_Medical_Report.pdf',
+      fileUrl: fileData || generateSampleBase64(sampleType),
+      fileName: fileName || 'Uploaded_Medical_Report.jpg',
       diagnoses: processedReport.diagnoses || [],
       medicines: processedReport.medicines || [],
       labResults: processedReport.labResults || [],
@@ -103,12 +106,13 @@ Assign realistic individual confidence scores (0-100) per field. If document is 
       followUpDate: processedReport.followUpDate,
       aiConfidenceScore: processedReport.aiConfidenceScore || 90,
       needsReview: processedReport.needsReview || false,
+      aiMode,
       caregiverSummary,
       changeHighlights,
       doctorConflicts,
     };
 
-    return NextResponse.json({ success: true, report: fullReport });
+    return NextResponse.json({ success: true, report: fullReport, aiMode });
   } catch (error) {
     console.error('Error analyzing report:', error);
     return NextResponse.json(
@@ -127,7 +131,7 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
       doctorSpecialty: 'Orthopedics',
       hospital: 'City Joint Clinic',
       department: 'OPD',
-      patientName: 'Lakshmi Devi',
+      patientName: 'Parent',
       visitDate: today,
       reportType: 'prescription',
       diagnoses: ['Joint Pain / Osteoarthritis (?)'],
@@ -150,7 +154,7 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
       labResults: [],
       doctorRecommendations: ['Avoid stair climbing', 'Knee x-ray requested'],
       followUpDate: '2026-09-01',
-      aiConfidenceScore: 74, // Below 80 triggers Needs Review UI
+      aiConfidenceScore: 74,
     };
   }
 
@@ -160,7 +164,7 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
       doctorSpecialty: 'Endocrinology',
       hospital: 'Apex Heart & Metabolic Institute',
       department: 'Clinical Pathology',
-      patientName: 'Lakshmi Devi',
+      patientName: 'Parent',
       visitDate: today,
       reportType: 'lab',
       diagnoses: ['Type 2 Diabetes', 'Hyperlipidemia'],
@@ -190,31 +194,19 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
           status: 'abnormal_high',
           confidence: 98,
         },
-        {
-          testName: 'Total Cholesterol',
-          value: 215,
-          unit: 'mg/dL',
-          referenceRange: '< 200',
-          status: 'abnormal_high',
-          confidence: 95,
-        },
       ],
-      doctorRecommendations: [
-        'Repeat lipid profile in 90 days.',
-        'Consult endocrinologist for HbA1c adjustment.',
-      ],
+      doctorRecommendations: ['Repeat lipid profile in 90 days.'],
       followUpDate: '2026-10-30',
       aiConfidenceScore: 96,
     };
   }
 
-  // Default Prescription Sample
   return {
     doctorName: 'Dr. Aris Thorne',
     doctorSpecialty: 'Endocrinology',
     hospital: 'Apex Heart & Metabolic Institute',
     department: 'Outpatient Endocrinology',
-    patientName: 'Lakshmi Devi',
+    patientName: 'Parent',
     visitDate: today,
     reportType: 'prescription',
     diagnoses: ['Type 2 Diabetes Mellitus', 'Essential Hypertension'],
@@ -233,21 +225,47 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
         instructions: 'Monitor blood pressure weekly',
         confidence: 95,
       },
-      {
-        name: 'Vitamin D3 (Cholecalciferol)',
-        dosage: '60,000 IU',
-        frequency: 'Once weekly for 8 weeks',
-        instructions: 'Take after heavy breakfast',
-        confidence: 94,
-      },
     ],
     labResults: [],
-    doctorRecommendations: [
-      'Strict low-carbohydrate and salt-restricted diet.',
-      'Daily 30 minutes light exercise.',
-      'Schedule follow-up appointment in 90 days.',
-    ],
+    doctorRecommendations: ['Dietary restriction and 30-min daily walk.'],
     followUpDate: '2026-10-28',
     aiConfidenceScore: 95,
   };
+}
+
+function generateSampleBase64(sampleType?: string): string {
+  // SVG Data URL representation of a medical prescription scan
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="#f8fafc">
+    <rect width="600" height="800" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="40" y="40" width="520" height="90" fill="#f1f5f9" rx="8"/>
+    <text x="60" y="80" font-family="Arial" font-size="22" font-weight="bold" fill="#0f172a">APEX HEART &amp; METABOLIC INSTITUTE</text>
+    <text x="60" y="105" font-family="Arial" font-size="13" fill="#475569">Dr. Aris Thorne, MD — Senior Endocrinologist | Reg #884920</text>
+    
+    <line x1="40" y1="150" x2="560" y2="150" stroke="#cbd5e1" stroke-width="2"/>
+    
+    <text x="60" y="190" font-family="Arial" font-size="14" font-weight="bold" fill="#334155">Rx PRESCRIPTION &amp; CLINICAL FINDINGS</text>
+    <text x="60" y="220" font-family="Arial" font-size="12" fill="#64748b">Patient Name: Lakshmi Devi | Age: 58y | Gender: Female</text>
+    <text x="60" y="240" font-family="Arial" font-size="12" fill="#64748b">Date: July 18, 2026 | OPD Card #: APX-99482</text>
+
+    <rect x="60" y="270" width="480" height="200" fill="#f8fafc" stroke="#e2e8f0" rx="6"/>
+    <text x="80" y="300" font-family="Arial" font-size="14" font-weight="bold" fill="#2563eb">1. Metformin HCl (Glucophage) 1000 mg</text>
+    <text x="100" y="325" font-family="Arial" font-size="12" fill="#475569">1 tablet twice daily after meals (Dosage increased from 500mg)</text>
+    
+    <text x="80" y="365" font-family="Arial" font-size="14" font-weight="bold" fill="#2563eb">2. Ramipril (Altace) 5 mg</text>
+    <text x="100" y="390" font-family="Arial" font-size="12" fill="#475569">1 tablet once daily in morning</text>
+    
+    <text x="80" y="430" font-family="Arial" font-size="14" font-weight="bold" fill="#2563eb">3. Vitamin D3 (Cholecalciferol) 60,000 IU</text>
+    <text x="100" y="455" font-family="Arial" font-size="12" fill="#475569">Once weekly for 8 weeks</text>
+
+    <text x="60" y="520" font-family="Arial" font-size="14" font-weight="bold" fill="#334155">LAB TEST RESULTS (PANEL):</text>
+    <text x="60" y="550" font-family="Arial" font-size="12" fill="#475569">• HbA1c: 7.8% (Target &lt; 7.0%) — Elevated</text>
+    <text x="60" y="575" font-family="Arial" font-size="12" fill="#475569">• Fasting Blood Glucose: 154 mg/dL</text>
+    <text x="60" y="600" font-family="Arial" font-size="12" fill="#475569">• Serum Creatinine: 1.1 mg/dL (Borderline High)</text>
+
+    <line x1="40" y1="670" x2="560" y2="670" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="60" y="710" font-family="Arial" font-size="12" font-weight="bold" fill="#0f172a">Follow-up: 90 days (Oct 18, 2026)</text>
+    <text x="400" y="740" font-family="Arial" font-size="14" font-style="italic" fill="#2563eb">Dr. Aris Thorne [Signed]</text>
+  </svg>`;
+
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 }

@@ -12,31 +12,29 @@ import {
   AlertCircle,
   FileCheck,
   Zap,
-  ArrowRight,
-  Shield,
-  Clock,
-  RefreshCw,
-  Eye
+  Cpu
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 import { MedicalReport } from '@/types/medical';
 
 export const ReportUploader: React.FC = () => {
   const router = useRouter();
-  const { addReport, reports } = useMedical();
+  const { addReport, reports, activeParentProfile } = useMedical();
 
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [lastAiMode, setLastAiMode] = useState<'gemini' | 'simulator' | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const aiSteps = [
     { title: 'Scanning Document & OCR Layout', desc: 'Parsing doctor handwriting, timestamps, and header seals...' },
     { title: 'Extracting Medical Entities', desc: 'Structuring Diagnoses, Medicines, Dosages, and Lab Parameters...' },
-    { title: 'Cross-Referencing Historical Reports', desc: `Comparing with ${reports.length} previous visits in LocalStorage...` },
+    { title: 'Cross-Referencing Historical Reports', desc: `Comparing with previous visits for ${activeParentProfile.name}...` },
     { title: 'Calculating Confidence & Conflict Detection', desc: 'Validating field confidence scores and multi-doctor interactions...' },
     { title: 'Synthesizing Caregiver Summary', desc: 'Generating plain-English change explanation and trend highlights...' },
   ];
@@ -79,30 +77,31 @@ export const ReportUploader: React.FC = () => {
     setIsProcessing(true);
     setCurrentStep(0);
 
-    // Animate AI steps sequentially
     for (let i = 0; i < aiSteps.length; i++) {
       setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
 
     try {
+      const parentReports = reports.filter((r) => r.parentId === activeParentProfile.id);
       const response = await fetch('/api/analyze-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileData: filePreview || null,
-          fileName: selectedFile?.name || 'Medical_Report.pdf',
+          fileName: selectedFile?.name || 'Medical_Report.jpg',
           sampleType: sampleType || 'prescription',
-          existingHistory: reports,
+          parentId: activeParentProfile.id,
+          existingHistory: parentReports,
         }),
       });
 
       const data = await response.json();
       if (data.success && data.report) {
         const newReport: MedicalReport = data.report;
+        setLastAiMode(data.aiMode);
         addReport(newReport);
         setIsProcessing(false);
-        // Redirect to review page for verification
         router.push(`/review/${newReport.id}`);
       } else {
         throw new Error(data.error || 'Failed to process report');
@@ -116,29 +115,45 @@ export const ReportUploader: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* Page Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5" /> AI Medical Vision Extractor
+      
+      {/* Header with explicit AI Mode status badge */}
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> AI Medical Vision Engine
+          </span>
+
+          {lastAiMode && (
+            <span
+              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
+                lastAiMode === 'gemini'
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-amber-100 text-amber-800 border-amber-300'
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              {lastAiMode === 'gemini' ? 'Gemini 2.5 Flash API Active' : 'Fallback Engine (No GEMINI_API_KEY)'}
+            </span>
+          )}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Upload Parent's Medical Report
+
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          Upload Report for {activeParentProfile.name}
         </h1>
-        <p className="text-sm text-slate-400 max-w-xl mx-auto">
-          Upload a prescription, blood test lab report, or hospital discharge summary. CareLens AI extracts structured data, detects changes, and alerts you to doctor conflicts.
+        <p className="text-xs text-slate-600 max-w-xl mx-auto">
+          Upload prescriptions, lab reports, or hospital discharge summaries. AI extracts structured fields, compares history, and alerts you to medication changes.
         </p>
       </div>
 
-      {/* Main Upload Box & AI Processing Modal */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-        
+      {/* Main Upload Box */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
         <AnimatePresence mode="wait">
           {!isProcessing ? (
             <motion.div
               key="upload-zone"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0 }}
               className="space-y-6"
             >
               {/* Drag and Drop Zone */}
@@ -148,12 +163,13 @@ export const ReportUploader: React.FC = () => {
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative cursor-pointer border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all ${
+                className={`relative cursor-pointer border-2 border-dashed rounded-xl p-8 text-center transition-all ${
                   dragActive
-                    ? 'border-blue-500 bg-blue-500/10 scale-[1.01]'
-                    : 'border-slate-700 bg-slate-950/50 hover:border-slate-600 hover:bg-slate-950/80'
+                    ? 'border-blue-500 bg-blue-50/50 scale-[1.01]'
+                    : 'border-slate-300 bg-slate-50/50 hover:border-slate-400 hover:bg-slate-50'
                 }`}
               >
+                {/* Standard File Upload */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -162,161 +178,152 @@ export const ReportUploader: React.FC = () => {
                   className="hidden"
                 />
 
-                <div className="w-16 h-16 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto mb-4 shadow-lg shadow-blue-600/20">
-                  <Upload className="w-8 h-8" />
+                {/* Real Device Camera Input Capture */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                <div className="w-14 h-14 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto mb-3">
+                  <Upload className="w-7 h-7" />
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-base font-bold text-white">
+                  <p className="text-sm font-bold text-slate-900">
                     {selectedFile ? selectedFile.name : 'Drag & drop medical report here'}
                   </p>
-                  <p className="text-xs text-slate-400">
-                    Supports high-res photos, scanned PDFs, PNG, JPG (prescriptions, labs, discharge summaries)
+                  <p className="text-xs text-slate-500">
+                    Supports high-resolution photos, scanned PDFs, PNG, JPG
                   </p>
                 </div>
 
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-600/30 transition-all flex items-center gap-2"
-                  >
-                    <FileText className="w-4 h-4" /> Browse Files
-                  </button>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert('Simulating mobile camera scan...');
-                      handleStartAnalysis('prescription');
+                      fileInputRef.current?.click();
                     }}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-2"
                   >
-                    <Camera className="w-4 h-4 text-indigo-400" /> Snap Photo (Camera)
+                    <FileText className="w-4 h-4" /> Browse Files
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      cameraInputRef.current?.click();
+                    }}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300 transition-all flex items-center gap-2"
+                  >
+                    <Camera className="w-4 h-4 text-blue-600" /> Device Camera Capture
                   </button>
                 </div>
               </div>
 
               {/* Action trigger if file selected */}
               {selectedFile && (
-                <div className="flex items-center justify-between bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4">
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex items-center space-x-3">
-                    <FileCheck className="w-6 h-6 text-blue-400" />
+                    <FileCheck className="w-6 h-6 text-blue-600" />
                     <div>
-                      <p className="text-sm font-semibold text-white">{selectedFile.name}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs font-bold text-slate-900">{selectedFile.name}</p>
+                      <p className="text-[11px] text-slate-500">
                         {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI extraction
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => handleStartAnalysis()}
-                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all"
+                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-sm flex items-center gap-2 transition-all"
                   >
-                    <Sparkles className="w-4 h-4" /> Analyze with AI
+                    <Sparkles className="w-4 h-4" /> Extract with AI
                   </button>
                 </div>
               )}
 
-              {/* Instant Preset Sample Reports for Fast Demoing */}
-              <div className="border-t border-slate-800 pt-6">
+              {/* Preset Sample Reports for Fast Demoing */}
+              <div className="border-t border-slate-200 pt-5">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" /> Quick Demo Presets (Test AI Vision)
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-600" /> Quick Demo Presets
                   </span>
-                  <span className="text-[10px] text-slate-500">1-Click Instant Analysis</span>
+                  <span className="text-[10px] text-slate-400">1-Click Instant Analysis</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     onClick={() => handleStartAnalysis('prescription')}
-                    className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/50 text-left transition-all group"
+                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-400 text-left transition-all group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-white group-hover:text-blue-400">Cardiology Prescription</span>
-                      <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/20 px-1.5 py-0.5 rounded">95% Conf</span>
+                      <span className="text-xs font-bold text-slate-900 group-hover:text-blue-600">Prescription Scan</span>
+                      <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">95% Conf</span>
                     </div>
-                    <p className="text-[11px] text-slate-400">Dr. Thorne • Metformin 1000mg dosage update</p>
+                    <p className="text-[11px] text-slate-500">Dr. Thorne • Metformin 1000mg dosage change</p>
                   </button>
 
                   <button
                     onClick={() => handleStartAnalysis('lab')}
-                    className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-800/50 text-left transition-all group"
+                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-amber-400 text-left transition-all group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-white group-hover:text-amber-400">Metabolic Lab Panel</span>
-                      <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded">96% Conf</span>
+                      <span className="text-xs font-bold text-slate-900 group-hover:text-amber-600">Metabolic Lab Panel</span>
+                      <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">96% Conf</span>
                     </div>
-                    <p className="text-[11px] text-slate-400">HbA1c 7.9% & Creatinine 1.1 mg/dL lab test</p>
+                    <p className="text-[11px] text-slate-500">HbA1c 7.9% & Creatinine lab report</p>
                   </button>
 
                   <button
                     onClick={() => handleStartAnalysis('low_confidence')}
-                    className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/50 text-left transition-all group"
+                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-rose-400 text-left transition-all group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-white group-hover:text-rose-400">Handwritten / Low Conf</span>
-                      <span className="text-[10px] font-semibold text-rose-400 bg-rose-500/20 px-1.5 py-0.5 rounded">74% Review</span>
+                      <span className="text-xs font-bold text-slate-900 group-hover:text-rose-600">Handwritten / Low Conf</span>
+                      <span className="text-[10px] font-semibold text-rose-800 bg-rose-100 px-1.5 py-0.5 rounded">74% Review</span>
                     </div>
-                    <p className="text-[11px] text-slate-400">Triggers manual review mode & NSAID warning</p>
+                    <p className="text-[11px] text-slate-500">Triggers manual review mode & NSAID warning</p>
                   </button>
                 </div>
               </div>
 
             </motion.div>
           ) : (
-            /* Framer Motion AI Processing State */
+            /* Multi-step processing animation */
             <motion.div
               key="processing-state"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="py-10 space-y-8 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-8 space-y-6 text-center"
             >
-              <div className="relative w-24 h-24 mx-auto">
-                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
-                <div className="absolute inset-2 rounded-full border-4 border-indigo-500/20 border-b-indigo-400 animate-spin-reverse" />
-                <div className="absolute inset-0 flex items-center justify-center text-blue-400">
-                  <Sparkles className="w-8 h-8 animate-pulse" />
-                </div>
+              <div className="w-12 h-12 rounded-full border-3 border-blue-600 border-t-transparent animate-spin mx-auto" />
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-900">Processing Medical Report</h3>
+                <p className="text-xs text-slate-500">Extracting clinical parameters and cross-referencing parent history...</p>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white">CareLens AI Processing Pipeline</h3>
-                <p className="text-xs text-slate-400">Analyzing document structure, extracting entities, and comparing medical history...</p>
-              </div>
-
-              {/* Progress Steps List */}
-              <div className="max-w-md mx-auto space-y-3 text-left bg-slate-950/80 border border-slate-800 p-5 rounded-2xl">
+              <div className="max-w-md mx-auto space-y-2.5 text-left bg-slate-50 border border-slate-200 p-4 rounded-xl">
                 {aiSteps.map((step, idx) => {
                   const isDone = idx < currentStep;
                   const isCurrent = idx === currentStep;
 
                   return (
-                    <div
-                      key={idx}
-                      className={`flex items-start space-x-3 transition-all ${
-                        isCurrent
-                          ? 'text-blue-400 opacity-100 font-semibold'
-                          : isDone
-                          ? 'text-emerald-400 opacity-90'
-                          : 'text-slate-600 opacity-50'
-                      }`}
-                    >
-                      <div className="mt-0.5">
-                        {isDone ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        ) : isCurrent ? (
-                          <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-slate-700" />
-                        )}
-                      </div>
-                      <div className="text-xs">
-                        <p className={isCurrent ? 'text-white font-bold' : isDone ? 'text-slate-300' : 'text-slate-500'}>
-                          {step.title}
-                        </p>
-                        {isCurrent && <p className="text-[11px] text-blue-300/80 mt-0.5">{step.desc}</p>}
-                      </div>
+                    <div key={idx} className="flex items-center space-x-3 text-xs">
+                      {isDone ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : isCurrent ? (
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
+                      )}
+                      <span className={isCurrent ? 'font-bold text-blue-700' : isDone ? 'text-slate-700' : 'text-slate-400'}>
+                        {step.title}
+                      </span>
                     </div>
                   );
                 })}
@@ -324,8 +331,8 @@ export const ReportUploader: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
+
     </div>
   );
 };

@@ -1,37 +1,47 @@
-import { ParentProfile, MedicalReport, FollowUpItem } from '../types/medical';
-import { INITIAL_PARENT_PROFILE, INITIAL_REPORTS, INITIAL_FOLLOWUPS } from './demoData';
+import { ParentProfile, MedicalReport, FollowUpItem, CaregiverUser } from '../types/medical';
+import { INITIAL_PARENT_PROFILES, INITIAL_REPORTS, INITIAL_FOLLOWUPS } from './demoData';
 
 const STORAGE_KEYS = {
-  PARENT: 'carelens_parent_profile',
+  PROFILES: 'carelens_parent_profiles',
+  ACTIVE_PARENT: 'carelens_active_parent_id',
   REPORTS: 'carelens_medical_reports',
   FOLLOWUPS: 'carelens_followups',
-  THEME: 'carelens_user_theme',
+  USER: 'carelens_caregiver_user',
 };
 
-// Helper to check browser environment
 const isBrowser = typeof window !== 'undefined';
 
-export const getStoredParentProfile = (): ParentProfile => {
-  if (!isBrowser) return INITIAL_PARENT_PROFILE;
+export const getStoredProfiles = (): ParentProfile[] => {
+  if (!isBrowser) return INITIAL_PARENT_PROFILES;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.PARENT);
+    const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.PARENT, JSON.stringify(INITIAL_PARENT_PROFILE));
-      return INITIAL_PARENT_PROFILE;
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(INITIAL_PARENT_PROFILES));
+      return INITIAL_PARENT_PROFILES;
     }
     return JSON.parse(raw);
   } catch {
-    return INITIAL_PARENT_PROFILE;
+    return INITIAL_PARENT_PROFILES;
   }
 };
 
-export const saveStoredParentProfile = (profile: ParentProfile): void => {
+export const getStoredActiveParentId = (): string => {
+  if (!isBrowser) return 'parent_mother';
+  try {
+    const id = localStorage.getItem(STORAGE_KEYS.ACTIVE_PARENT);
+    return id || 'parent_mother';
+  } catch {
+    return 'parent_mother';
+  }
+};
+
+export const saveStoredActiveParentId = (id: string): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.PARENT, JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_PARENT, id);
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
-    console.error('Error saving parent profile:', e);
+    console.error('Error saving active parent ID:', e);
   }
 };
 
@@ -67,11 +77,11 @@ export const addReportToStore = (newReport: MedicalReport): void => {
   const updated = [newReport, ...existing];
   saveStoredReports(updated);
   
-  // If followUpDate is present, create follow-up item
   if (newReport.followUpDate) {
     const followUps = getStoredFollowUps();
     const newFollowUp: FollowUpItem = {
       id: `f_${Date.now()}`,
+      parentId: newReport.parentId,
       doctorName: newReport.doctorName,
       specialty: newReport.doctorSpecialty,
       hospital: newReport.hospital,
@@ -123,10 +133,31 @@ export const saveStoredFollowUps = (followUps: FollowUpItem[]): void => {
   }
 };
 
+export const getStoredCaregiverUser = (): CaregiverUser | null => {
+  if (!isBrowser) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.USER);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStoredCaregiverUser = (user: CaregiverUser): void => {
+  if (!isBrowser) return;
+  try {
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    window.dispatchEvent(new Event('carelens_data_updated'));
+  } catch (e) {
+    console.error('Error saving caregiver user:', e);
+  }
+};
+
 export const resetAllDataToDemo = (): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.PARENT, JSON.stringify(INITIAL_PARENT_PROFILE));
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(INITIAL_PARENT_PROFILES));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_PARENT, 'parent_mother');
     localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(INITIAL_REPORTS));
     localStorage.setItem(STORAGE_KEYS.FOLLOWUPS, JSON.stringify(INITIAL_FOLLOWUPS));
     window.dispatchEvent(new Event('carelens_data_updated'));

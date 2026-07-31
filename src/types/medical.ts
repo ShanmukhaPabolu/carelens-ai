@@ -45,6 +45,7 @@ export interface DoctorConflict {
 
 export interface MedicalReport {
   id: string;
+  parentId: string; // Belongs to Mother or Father profile
   uploadDate: string; // ISO String
   visitDate: string;  // YYYY-MM-DD
   doctorName: string;
@@ -53,7 +54,7 @@ export interface MedicalReport {
   department: string;
   patientName: string;
   reportType: 'lab' | 'prescription' | 'discharge' | 'imaging' | 'general';
-  fileUrl?: string; // base64 or object url
+  fileUrl?: string; // base64 data URL of original uploaded report image
   fileName?: string;
   
   diagnoses: string[];
@@ -64,6 +65,7 @@ export interface MedicalReport {
   
   aiConfidenceScore: number; // overall 0-100
   needsReview: boolean;
+  aiMode: 'gemini' | 'simulator'; // Explicit indicator if real API or fallback simulator was used
   
   caregiverSummary: string;
   changeHighlights: ChangeHighlight[];
@@ -72,6 +74,7 @@ export interface MedicalReport {
 
 export interface FollowUpItem {
   id: string;
+  parentId: string;
   doctorName: string;
   specialty: string;
   hospital: string;
@@ -84,6 +87,7 @@ export interface FollowUpItem {
 export interface ParentProfile {
   id: string;
   name: string;
+  relationship: 'Mother' | 'Father' | 'Parent';
   age: number;
   gender: string;
   bloodGroup: string;
@@ -93,6 +97,11 @@ export interface ParentProfile {
   hospital: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
-  relationship: string; // e.g. "Mother"
   photoUrl?: string;
+}
+
+export interface CaregiverUser {
+  fullName: string;
+  email: string;
+  createdAt: string;
 }
