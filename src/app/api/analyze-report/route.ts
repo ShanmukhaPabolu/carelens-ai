@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         const base64Content = fileData.replace(/^data:[^;]+;base64,/, '');
         const mimeType = fileData.substring(fileData.indexOf(':') + 1, fileData.indexOf(';')) || 'image/jpeg';
 
-        const prompt = `You are CareLens AI, an expert medical document parser. Analyze this medical report (prescription, lab report, or discharge summary) and extract structured JSON matching this exact schema:
+        const prompt = `You are CareLens AI, an expert medical document parser. Analyze this medical report (prescription, lab report, scan, discharge summary, or consultation) and extract structured JSON matching this exact schema:
 {
   "doctorName": "Doctor name with title",
   "doctorSpecialty": "Specialty e.g. Cardiology, Endocrinology, Orthopedics",
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   "department": "Department",
   "patientName": "Patient name",
   "visitDate": "YYYY-MM-DD",
-  "reportType": "lab" | "prescription" | "discharge" | "imaging" | "general",
+  "reportType": "prescription" | "lab" | "scan" | "discharge" | "consultation",
   "diagnoses": ["Diagnosis 1", "Diagnosis 2"],
   "medicines": [
     {
@@ -52,7 +52,15 @@ export async function POST(req: NextRequest) {
   ],
   "doctorRecommendations": ["Recommendation 1", "Recommendation 2"],
   "followUpDate": "YYYY-MM-DD",
-  "aiConfidenceScore": 92
+  "aiConfidenceScore": 92,
+  "fieldConfidence": {
+    "doctorName": 95,
+    "doctorSpecialty": 94,
+    "hospital": 90,
+    "visitDate": 98,
+    "diagnoses": 92,
+    "reportType": 96
+  }
 }
 Assign realistic confidence scores (0-100) per field. Output ONLY valid JSON without markdown code blocks.`;
 
@@ -105,6 +113,14 @@ Assign realistic confidence scores (0-100) per field. Output ONLY valid JSON wit
       doctorRecommendations: processedReport.doctorRecommendations || [],
       followUpDate: processedReport.followUpDate,
       aiConfidenceScore: processedReport.aiConfidenceScore || 90,
+      fieldConfidence: processedReport.fieldConfidence || {
+        doctorName: 95,
+        doctorSpecialty: 92,
+        hospital: 90,
+        visitDate: 98,
+        diagnoses: 91,
+        reportType: 95,
+      },
       needsReview: processedReport.needsReview || false,
       aiMode,
       caregiverSummary,
@@ -155,6 +171,14 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
       doctorRecommendations: ['Avoid stair climbing', 'Knee x-ray requested'],
       followUpDate: '2026-09-01',
       aiConfidenceScore: 74,
+      fieldConfidence: {
+        doctorName: 71,
+        doctorSpecialty: 82,
+        hospital: 85,
+        visitDate: 92,
+        diagnoses: 68,
+        reportType: 89,
+      },
     };
   }
 
@@ -198,6 +222,14 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
       doctorRecommendations: ['Repeat lipid profile in 90 days.'],
       followUpDate: '2026-10-30',
       aiConfidenceScore: 96,
+      fieldConfidence: {
+        doctorName: 98,
+        doctorSpecialty: 97,
+        hospital: 96,
+        visitDate: 99,
+        diagnoses: 95,
+        reportType: 97,
+      },
     };
   }
 
@@ -230,6 +262,14 @@ function generateSimulatedExtraction(sampleType?: string, fileName?: string): Ra
     doctorRecommendations: ['Dietary restriction and 30-min daily walk.'],
     followUpDate: '2026-10-28',
     aiConfidenceScore: 95,
+    fieldConfidence: {
+      doctorName: 98,
+      doctorSpecialty: 96,
+      hospital: 95,
+      visitDate: 99,
+      diagnoses: 94,
+      reportType: 98,
+    },
   };
 }
 
@@ -269,3 +309,4 @@ function generateSampleBase64(sampleType?: string): string {
 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 }
+

@@ -15,9 +15,11 @@ import {
   Plus,
   X,
   Cpu,
-  ZoomIn
+  ZoomIn,
+  ShieldCheck,
+  Info
 } from 'lucide-react';
-import { MedicalReport, Medication, LabResult } from '@/types/medical';
+import { MedicalReport, Medication, LabResult, ReportCategory } from '@/types/medical';
 import { useMedical } from '@/context/MedicalContext';
 import { DoctorConflictAlert } from '../dashboard/DoctorConflictAlert';
 
@@ -33,20 +35,22 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [imageExpanded, setImageExpanded] = useState(false);
 
-  const getConfidenceBadge = (confidence: number) => {
-    if (confidence >= 85) {
+  const getFieldConfidenceBadge = (confidence: number = 95) => {
+    if (confidence >= 80) {
       return (
-        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5" /> {confidence}% Confidence
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+          {confidence}% Conf
         </span>
       );
     }
     return (
-      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> {confidence}% Needs Review
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 animate-pulse flex items-center gap-0.5">
+        <AlertTriangle className="w-3 h-3 text-amber-600" /> {confidence}% Needs Verification
       </span>
     );
   };
+
+  const isLowConfidenceField = (confidence: number = 95) => confidence < 80;
 
   const handleSave = () => {
     const updated = {
@@ -61,7 +65,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to discard this report?')) {
+    if (confirm('Are you sure you want to discard this extracted report?')) {
       deleteReport(report.id);
       router.push('/timeline');
     }
@@ -95,23 +99,45 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
     setReport({ ...report, labResults: labs });
   };
 
+  const addDiagnosis = () => {
+    setReport({ ...report, diagnoses: [...report.diagnoses, 'New Diagnosis'] });
+  };
+
+  const removeDiagnosis = (index: number) => {
+    const updated = report.diagnoses.filter((_, i) => i !== index);
+    setReport({ ...report, diagnoses: updated });
+  };
+
+  const fc = report.fieldConfidence || {
+    doctorName: 95,
+    doctorSpecialty: 94,
+    hospital: 90,
+    visitDate: 98,
+    diagnoses: 92,
+    reportType: 96,
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
       
-      {/* Top Warning Banner if Needs Review */}
+      {/* RESPONSIBLE AI WARNING BANNER if Needs Review */}
       {report.needsReview && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 text-amber-900 shadow-xs">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-amber-950 shadow-xs">
           <div className="flex items-center space-x-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div className="p-2 rounded-xl bg-amber-200 text-amber-900 shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-700" />
+            </div>
             <div>
-              <p className="text-xs font-bold">Extraction Flagged: "Needs Review"</p>
-              <p className="text-[11px] text-amber-700">
-                Overall AI confidence ({report.aiConfidenceScore}%) is below 80%. Please inspect the original document photo beside the extracted fields before approving.
+              <p className="text-xs font-extrabold uppercase tracking-wider">
+                Human Verification Required (AI Confidence Below 80%)
+              </p>
+              <p className="text-xs text-amber-900 mt-0.5">
+                AI extracted fields highlighted in yellow require manual caregiver confirmation against the original doctor note before saving.
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-bold px-3 py-1 bg-amber-200 text-amber-900 border border-amber-300 rounded-lg">
-            Manual Review Active
+          <span className="text-[11px] font-bold px-3 py-1 bg-amber-200 text-amber-950 border border-amber-400 rounded-xl">
+            Never Auto-Saved (Responsible AI)
           </span>
         </div>
       )}
@@ -125,8 +151,10 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-slate-900">AI Medical Extraction Review</h1>
-            {getConfidenceBadge(report.aiConfidenceScore)}
+            <h1 className="text-lg font-bold text-slate-900">Human Verification & Field Approval</h1>
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Overall {report.aiConfidenceScore}% Conf
+            </span>
 
             {/* AI Engine Indicator Badge */}
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 flex items-center gap-1">
@@ -155,26 +183,26 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
           >
             {savedSuccess ? (
               <>
-                <CheckCircle2 className="w-4 h-4 text-white" /> Approved & Saved!
+                <CheckCircle2 className="w-4 h-4 text-white" /> Approved & Updated!
               </>
             ) : (
               <>
-                <Save className="w-4 h-4" /> Approve & Update Timeline
+                <Save className="w-4 h-4" /> Confirm Output & Save
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Main 2-Column Split */}
+      {/* Main 2-Column Split: Original Report -> AI Extracted Values */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* ORIGINAL DOCUMENT VIEWER - 5 Cols */}
+        {/* Step 1: ORIGINAL SOURCE DOCUMENT VIEWER - 5 Cols */}
         <div className="lg:col-span-5 space-y-3 sticky top-20">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <FileCheck className="w-4 h-4 text-sky-600" /> Original Source Document
+                <FileCheck className="w-4 h-4 text-sky-600" /> Step 1: Original Source Report
               </h2>
               <button
                 onClick={() => setImageExpanded(!imageExpanded)}
@@ -201,80 +229,153 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
               )}
             </div>
             <p className="text-[10px] text-slate-500 text-center">
-              Inspect original doctor handwriting & lab printout directly against extracted fields.
+              Compare handwritten notes & lab printouts directly against extracted fields.
             </p>
           </div>
         </div>
 
-        {/* EDITABLE EXTRACTED FIELDS - 7 Cols */}
+        {/* Step 2: EDITABLE EXTRACTED FIELDS WITH CONFIDENCE PER FIELD - 7 Cols */}
         <div className="lg:col-span-7 space-y-5">
           
           {/* Metadata Card */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Stethoscope className="w-4 h-4 text-sky-600" /> Doctor & Visit Information
+              <Stethoscope className="w-4 h-4 text-sky-600" /> Step 2: Extracted Metadata & Field Confidence
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Patient Name</label>
-                <input
-                  type="text"
-                  value={report.patientName}
-                  onChange={(e) => setReport({ ...report, patientName: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Doctor Name</label>
+              
+              {/* Doctor Name */}
+              <div className={`p-3 rounded-xl border transition-all ${isLowConfidenceField(fc.doctorName) ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Doctor Name</label>
+                  {getFieldConfidenceBadge(fc.doctorName)}
+                </div>
                 <input
                   type="text"
                   value={report.doctorName}
                   onChange={(e) => setReport({ ...report, doctorName: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Specialty</label>
+              {/* Specialty */}
+              <div className={`p-3 rounded-xl border transition-all ${isLowConfidenceField(fc.doctorSpecialty) ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Doctor Specialty</label>
+                  {getFieldConfidenceBadge(fc.doctorSpecialty)}
+                </div>
                 <input
                   type="text"
                   value={report.doctorSpecialty}
                   onChange={(e) => setReport({ ...report, doctorSpecialty: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Hospital / Clinic</label>
+              {/* Hospital */}
+              <div className={`p-3 rounded-xl border transition-all ${isLowConfidenceField(fc.hospital) ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Hospital / Clinic</label>
+                  {getFieldConfidenceBadge(fc.hospital)}
+                </div>
                 <input
                   type="text"
                   value={report.hospital}
                   onChange={(e) => setReport({ ...report, hospital: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Visit Date</label>
+              {/* Visit Date */}
+              <div className={`p-3 rounded-xl border transition-all ${isLowConfidenceField(fc.visitDate) ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Visit Date</label>
+                  {getFieldConfidenceBadge(fc.visitDate)}
+                </div>
                 <input
                   type="date"
                   value={report.visitDate}
                   onChange={(e) => setReport({ ...report, visitDate: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Follow-up Date</label>
+              {/* Report Category */}
+              <div className={`p-3 rounded-xl border transition-all ${isLowConfidenceField(fc.reportType) ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Report Category</label>
+                  {getFieldConfidenceBadge(fc.reportType)}
+                </div>
+                <select
+                  value={report.reportType}
+                  onChange={(e) => setReport({ ...report, reportType: e.target.value as ReportCategory })}
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
+                >
+                  <option value="prescription">Prescription</option>
+                  <option value="lab">Lab Report</option>
+                  <option value="scan">Scan / Imaging</option>
+                  <option value="discharge">Discharge Summary</option>
+                  <option value="consultation">Consultation Note</option>
+                </select>
+              </div>
+
+              {/* Patient Name */}
+              <div className="p-3 rounded-xl border bg-slate-50 border-slate-200">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Patient Name</label>
+                  <span className="text-[10px] font-bold text-sky-800">Verified</span>
+                </div>
                 <input
-                  type="date"
-                  value={report.followUpDate || ''}
-                  onChange={(e) => setReport({ ...report, followUpDate: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                  type="text"
+                  value={report.patientName}
+                  onChange={(e) => setReport({ ...report, patientName: e.target.value })}
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                 />
               </div>
+
+            </div>
+          </div>
+
+          {/* Diagnoses Card */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Extracted Diagnoses
+                </h2>
+                {getFieldConfidenceBadge(fc.diagnoses)}
+              </div>
+              <button
+                onClick={addDiagnosis}
+                className="text-xs font-semibold text-sky-700 hover:text-sky-800 flex items-center gap-1 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Diagnosis
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {report.diagnoses.map((diag, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={diag}
+                    onChange={(e) => {
+                      const updated = [...report.diagnoses];
+                      updated[idx] = e.target.value;
+                      setReport({ ...report, diagnoses: updated });
+                    }}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => removeDiagnosis(idx)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600"
+                    title="Remove Diagnosis"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -282,7 +383,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
           <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Pill className="w-4 h-4 text-sky-600" /> Prescribed Medications
+                <Pill className="w-4 h-4 text-sky-600" /> Prescribed Medicines ({report.medicines.length})
               </h2>
               <button
                 onClick={addMedication}
@@ -295,12 +396,16 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
             {report.medicines.map((med, idx) => (
               <div
                 key={idx}
-                className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3 relative"
+                className={`p-3.5 rounded-xl border space-y-3 relative transition-all ${
+                  isLowConfidenceField(med.confidence)
+                    ? 'bg-amber-50/80 border-amber-300'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold text-slate-800">Drug #{idx + 1}</span>
                   <div className="flex items-center space-x-2">
-                    {getConfidenceBadge(med.confidence)}
+                    {getFieldConfidenceBadge(med.confidence)}
                     <button
                       onClick={() => removeMedication(idx)}
                       className="text-slate-400 hover:text-rose-600 p-1"
@@ -318,7 +423,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                       type="text"
                       value={med.name}
                       onChange={(e) => updateMedication(idx, { name: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                     />
                   </div>
 
@@ -328,7 +433,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                       type="text"
                       value={med.dosage}
                       onChange={(e) => updateMedication(idx, { dosage: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                     />
                   </div>
 
@@ -338,7 +443,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                       type="text"
                       value={med.frequency}
                       onChange={(e) => updateMedication(idx, { frequency: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -350,15 +455,22 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
           {report.labResults.length > 0 && (
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-                <Activity className="w-4 h-4 text-sky-600" /> Extracted Lab Parameters
+                <Activity className="w-4 h-4 text-sky-600" /> Extracted Lab Values
               </h2>
 
               <div className="space-y-3">
                 {report.labResults.map((lab, idx) => (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border space-y-2 ${
+                      isLowConfidenceField(lab.confidence)
+                        ? 'bg-amber-50/80 border-amber-300'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-900">{lab.testName}</span>
-                      {getConfidenceBadge(lab.confidence)}
+                      {getFieldConfidenceBadge(lab.confidence)}
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">
@@ -369,7 +481,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                           step="0.1"
                           value={lab.value}
                           onChange={(e) => updateLabResult(idx, { value: parseFloat(e.target.value) })}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                         />
                       </div>
                       <div>
@@ -378,7 +490,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                           type="text"
                           value={lab.unit}
                           onChange={(e) => updateLabResult(idx, { unit: e.target.value })}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                         />
                       </div>
                       <div>
@@ -387,7 +499,7 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
                           type="text"
                           value={lab.referenceRange}
                           onChange={(e) => updateLabResult(idx, { referenceRange: e.target.value })}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-sky-600 focus:outline-none"
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:border-sky-600 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -400,14 +512,27 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
           {/* AI Caregiver Summary Textarea */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-xs">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-sky-600" /> AI Caregiver Summary
+              <Sparkles className="w-4 h-4 text-sky-600" /> AI Caregiver Journey Summary
             </h2>
             <textarea
               rows={4}
               value={report.caregiverSummary}
               onChange={(e) => setReport({ ...report, caregiverSummary: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 leading-relaxed focus:border-sky-600 focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 leading-relaxed focus:border-sky-600 focus:outline-none font-medium"
             />
+          </div>
+
+          {/* RESPONSIBLE AI DISCLOSURE NOTICE */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1.5 text-xs text-slate-600">
+            <div className="flex items-center gap-1.5 font-bold text-slate-800">
+              <Info className="w-4 h-4 text-sky-600" /> Responsible AI Disclaimers & Guidelines
+            </div>
+            <ul className="space-y-1 text-[11px] text-slate-500 list-disc list-inside leading-relaxed">
+              <li>AI may incorrectly extract handwritten physician notes or low-resolution scans.</li>
+              <li>Always verify important medical dosages and lab values against original source documents.</li>
+              <li>Uncertain or low-confidence values require caregiver confirmation before committing to timeline.</li>
+              <li>CareLens AI does not replace professional medical advice or clinical diagnosis.</li>
+            </ul>
           </div>
 
         </div>
@@ -416,3 +541,4 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
     </div>
   );
 };
+

@@ -11,14 +11,17 @@ import {
   CheckCircle2,
   FileCheck,
   Zap,
-  Cpu
+  Cpu,
+  Copy,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 import { MedicalReport } from '@/types/medical';
 
 export const ReportUploader: React.FC = () => {
   const router = useRouter();
-  const { addReport, reports, activeParentProfile } = useMedical();
+  const { addReport, updateReport, reports, activeParentProfile } = useMedical();
 
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -26,6 +29,12 @@ export const ReportUploader: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [lastAiMode, setLastAiMode] = useState<'gemini' | 'simulator' | null>(null);
+
+  // Duplicate detection state
+  const [duplicateMatch, setDuplicateMatch] = useState<{
+    existingReport: MedicalReport;
+    newReport: MedicalReport;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +87,7 @@ export const ReportUploader: React.FC = () => {
 
     for (let i = 0; i < aiSteps.length; i++) {
       setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     try {
@@ -99,6 +108,20 @@ export const ReportUploader: React.FC = () => {
       if (data.success && data.report) {
         const newReport: MedicalReport = data.report;
         setLastAiMode(data.aiMode);
+
+        // Check for duplicate reports (Requirement 10: Duplicate Report Detection)
+        const duplicate = parentReports.find(
+          (r) =>
+            r.doctorName.toLowerCase() === newReport.doctorName.toLowerCase() &&
+            r.visitDate === newReport.visitDate
+        );
+
+        if (duplicate) {
+          setIsProcessing(false);
+          setDuplicateMatch({ existingReport: duplicate, newReport });
+          return;
+        }
+
         addReport(newReport);
         setIsProcessing(false);
         router.push(`/review/${newReport.id}`);
@@ -109,6 +132,26 @@ export const ReportUploader: React.FC = () => {
       console.error('Error analyzing report:', err);
       setIsProcessing(false);
       alert('Error analyzing report. Please try again.');
+    }
+  };
+
+  const handleDuplicateAction = (action: 'replace' | 'keep' | 'cancel') => {
+    if (!duplicateMatch) return;
+
+    if (action === 'replace') {
+      const updatedReport = {
+        ...duplicateMatch.newReport,
+        id: duplicateMatch.existingReport.id,
+      };
+      updateReport(updatedReport);
+      setDuplicateMatch(null);
+      router.push(`/review/${updatedReport.id}`);
+    } else if (action === 'keep') {
+      addReport(duplicateMatch.newReport);
+      setDuplicateMatch(null);
+      router.push(`/review/${duplicateMatch.newReport.id}`);
+    } else {
+      setDuplicateMatch(null);
     }
   };
 
@@ -131,7 +174,7 @@ export const ReportUploader: React.FC = () => {
               }`}
             >
               <Cpu className="w-3.5 h-3.5" />
-              {lastAiMode === 'gemini' ? 'Gemini 2.5 Flash API Active' : 'Fallback Engine (No GEMINI_API_KEY)'}
+              {lastAiMode === 'gemini' ? 'Gemini 2.5 Flash API Active' : 'Fallback Simulator AI'}
             </span>
           )}
         </div>
@@ -139,10 +182,63 @@ export const ReportUploader: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
           Upload Report for {activeParentProfile.name}
         </h1>
-        <p className="text-xs text-slate-500 max-w-xl mx-auto">
-          Upload prescriptions, lab reports, or hospital discharge summaries. AI extracts structured fields, compares history, and alerts you to medication changes.
+        <p className="text-xs text-slate-500 max-w-xl mx-auto leading-relaxed">
+          Upload prescriptions, lab reports, scans, discharge summaries, or consultation notes. AI automatically extracts parameters, detects duplicate records, and flags doctor conflicts.
         </p>
       </div>
+
+      {/* DUPLICATE REPORT MODAL (Requirement 10) */}
+      <AnimatePresence>
+        {duplicateMatch && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 shadow-lg space-y-4"
+          >
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                <Copy className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-extrabold text-amber-950">
+                  Duplicate Report Detected
+                </h3>
+                <p className="text-xs text-amber-900 leading-relaxed font-semibold">
+                  "This report appears to have already been uploaded."
+                </p>
+                <p className="text-[11px] text-amber-800">
+                  Existing report recorded on <strong className="text-amber-950">{duplicateMatch.existingReport.visitDate}</strong> with{' '}
+                  <strong className="text-amber-950">{duplicateMatch.existingReport.doctorName}</strong> ({duplicateMatch.existingReport.doctorSpecialty}).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-amber-200">
+              <button
+                onClick={() => handleDuplicateAction('cancel')}
+                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition-all"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => handleDuplicateAction('keep')}
+                className="px-4 py-2 bg-amber-200 hover:bg-amber-300 text-amber-950 rounded-xl text-xs font-bold border border-amber-400 transition-all"
+              >
+                Keep Both
+              </button>
+
+              <button
+                onClick={() => handleDuplicateAction('replace')}
+                className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
+              >
+                Replace Existing
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Upload Box */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
@@ -194,7 +290,7 @@ export const ReportUploader: React.FC = () => {
                     {selectedFile ? selectedFile.name : 'Drag & drop medical report here'}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Supports high-resolution photos, scanned PDFs, PNG, JPG
+                    Supports high-resolution photos, prescriptions, lab PDFs, imaging scans (PNG, JPG, PDF)
                   </p>
                 </div>
 
@@ -205,7 +301,7 @@ export const ReportUploader: React.FC = () => {
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2"
                   >
                     <FileText className="w-4 h-4" /> Browse Files
                   </button>
@@ -216,9 +312,9 @@ export const ReportUploader: React.FC = () => {
                       e.stopPropagation();
                       cameraInputRef.current?.click();
                     }}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-300 transition-all flex items-center gap-2"
                   >
-                    <Camera className="w-4 h-4 text-sky-700" /> Device Camera Capture
+                    <Camera className="w-4 h-4 text-sky-700" /> Device Camera Scan
                   </button>
                 </div>
               </div>
@@ -230,7 +326,7 @@ export const ReportUploader: React.FC = () => {
                     <div>
                       <p className="text-xs font-bold text-slate-900">{selectedFile.name}</p>
                       <p className="text-[11px] text-slate-500">
-                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI extraction
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI categorization
                       </p>
                     </div>
                   </div>
@@ -238,17 +334,18 @@ export const ReportUploader: React.FC = () => {
                     onClick={() => handleStartAnalysis()}
                     className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center gap-2 transition-all"
                   >
-                    <Sparkles className="w-4 h-4" /> Extract with AI
+                    <Sparkles className="w-4 h-4" /> Extract & Categorize
                   </button>
                 </div>
               )}
 
+              {/* Demo Preset Scans */}
               <div className="border-t border-slate-200 pt-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-600" /> Quick Demo Presets
+                    <Zap className="w-3.5 h-3.5 text-amber-600" /> Instant Demo Scans
                   </span>
-                  <span className="text-[10px] text-slate-400">1-Click Instant Analysis</span>
+                  <span className="text-[10px] text-slate-400">1-Click Automated Processing</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -268,10 +365,10 @@ export const ReportUploader: React.FC = () => {
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-amber-400 text-left transition-all group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900 group-hover:text-amber-700">Metabolic Lab Panel</span>
+                      <span className="text-xs font-bold text-slate-900 group-hover:text-amber-700">Lab Panel Scan</span>
                       <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">96% Conf</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">HbA1c 7.9% & Creatinine lab report</p>
+                    <p className="text-[11px] text-slate-500">HbA1c 7.9% & Creatinine 1.1 mg/dL</p>
                   </button>
 
                   <button
@@ -327,6 +424,17 @@ export const ReportUploader: React.FC = () => {
         </AnimatePresence>
       </div>
 
+      {/* RESPONSIBLE AI DISCLOSURE NOTICE */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1 text-xs text-slate-600">
+        <div className="flex items-center gap-1.5 font-bold text-slate-800">
+          <Info className="w-4 h-4 text-sky-600" /> Responsible AI Disclaimers & Limitations
+        </div>
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          CareLens AI parses handwriting and digital scans but requires human verification for low-confidence outputs (&lt;80%). AI predictions do not constitute medical advice or replace professional healthcare consultation.
+        </p>
+      </div>
+
     </div>
   );
 };
+

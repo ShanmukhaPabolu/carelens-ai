@@ -1,4 +1,4 @@
-import { MedicalReport, ChangeHighlight, DoctorConflict, Medication, LabResult } from '../../types/medical';
+import { MedicalReport, ChangeHighlight, DoctorConflict, Medication, LabResult, FieldConfidenceMap, ReportCategory } from '../../types/medical';
 
 export interface RawExtractedData {
   doctorName?: string;
@@ -7,13 +7,14 @@ export interface RawExtractedData {
   department?: string;
   patientName?: string;
   visitDate?: string;
-  reportType?: 'lab' | 'prescription' | 'discharge' | 'imaging' | 'general';
+  reportType?: ReportCategory;
   diagnoses?: string[];
   medicines?: Partial<Medication>[];
   labResults?: Partial<LabResult>[];
   doctorRecommendations?: string[];
   followUpDate?: string;
   aiConfidenceScore?: number;
+  fieldConfidence?: Partial<FieldConfidenceMap>;
 }
 
 export function compareAndSynthesizeReport(
@@ -34,19 +35,21 @@ export function compareAndSynthesizeReport(
   );
   const lastReport = sortedHistory[0];
 
-  // 1. Compare Medications
+  // 1. Compare Medications across all doctors & reports
   const newMedicines: Medication[] = (extracted.medicines || []).map((med) => {
     const medName = med.name || 'Unspecified Medication';
     const confidence = med.confidence ?? Math.floor(Math.random() * 20) + 80;
 
     // Find in previous reports
     let prevMed: Medication | undefined;
+    let prevDoctor: string | undefined;
     for (const r of sortedHistory) {
       const match = r.medicines.find(
         (pm) => pm.name.toLowerCase().includes(medName.toLowerCase()) || medName.toLowerCase().includes(pm.name.toLowerCase())
       );
       if (match) {
         prevMed = match;
+        prevDoctor = r.doctorName;
         break;
       }
     }
@@ -67,6 +70,19 @@ export function compareAndSynthesizeReport(
           description: `Dosage modified from ${prevMed.dosage} to ${med.dosage}.`,
           severity: 'warning',
         });
+
+        // Detect Doctor Dosage Conflict (e.g., Dr. Rao prescribed 500mg, Dr. Kumar prescribed 1000mg)
+        if (prevDoctor && extracted.doctorName && prevDoctor.toLowerCase() !== extracted.doctorName.toLowerCase()) {
+          doctorConflicts.push({
+            id: `conflict_dosage_${Date.now()}_${Math.random()}`,
+            severity: 'warning',
+            title: `Multi-Doctor Dosage Conflict for ${medName}`,
+            description: `⚠ ${prevDoctor} prescribed ${medName} ${prevMed.dosage}. ⚠ ${extracted.doctorName} prescribed ${medName} ${med.dosage}. Please verify with your doctor before continuing.`,
+            doctorNames: [prevDoctor, extracted.doctorName],
+            reportIds: [lastReport?.id || ''].filter(Boolean),
+            recommendation: 'Contact both prescribing doctors or consult your primary physician to confirm the correct dosage. This is only an alert, never medical advice.',
+          });
+        }
       } else {
         status = 'continued';
       }
@@ -138,8 +154,7 @@ export function compareAndSynthesizeReport(
     };
   });
 
-  // 3. Detect Doctor Conflicts (Key AI Feature)
-  // Example conflict check: NSAID medication when creatinine is elevated or doctor notes kidney concern
+  // 3. Detect Doctor Conflicts (NSAID & Renal risk, Contradictory Prescriptions)
   const containsNSAID = newMedicines.some((m) =>
     ['naproxen', 'ibuprofen', 'diclofenac', 'ketorolac', 'celecoxib'].some((nsaid) =>
       m.name.toLowerCase().includes(nsaid)
@@ -154,10 +169,10 @@ export function compareAndSynthesizeReport(
 
   if (containsNSAID && hasHighCreatinine) {
     doctorConflicts.push({
-      id: `conflict_${Date.now()}`,
+      id: `conflict_nsaid_${Date.now()}`,
       severity: 'critical',
       title: 'Potential Medication & Kidney Risk Contradiction',
-      description: `Report includes NSAID pain medication (${
+      description: `⚠ ${extracted.doctorName || 'Doctor'} prescribed an NSAID pain medication (${
         newMedicines.find((m) =>
           ['naproxen', 'ibuprofen', 'diclofenac'].some((n) => m.name.toLowerCase().includes(n))
         )?.name
@@ -165,14 +180,13 @@ export function compareAndSynthesizeReport(
       doctorNames: [extracted.doctorName || 'Attending Physician', 'Nephrology / Endocrinology Team'],
       reportIds: [lastReport?.id || ''].filter(Boolean),
       recommendation:
-        'Please review this prescription with the treating physician or consult your primary care doctor before initiating treatment.',
+        'Please review this prescription with the treating physician before initiating treatment. This is only an alert, never medical advice.',
     });
   }
 
   // 4. Synthesize Caregiver Natural Language Summary
   let caregiverSummary = '';
   const docName = extracted.doctorName || 'the doctor';
-  const patient = extracted.patientName || 'your parent';
   const visitStr = extracted.visitDate ? `on ${extracted.visitDate}` : 'during this visit';
 
   if (changeHighlights.length > 0) {
@@ -203,21 +217,32 @@ export function compareAndSynthesizeReport(
   const confidenceScore = extracted.aiConfidenceScore ?? 92;
   const needsReview = confidenceScore < 80;
 
+  // Build field-level confidence map if not provided
+  const fieldConfidence: FieldConfidenceMap = {
+    doctorName: extracted.fieldConfidence?.doctorName ?? Math.min(100, confidenceScore + 3),
+    doctorSpecialty: extracted.fieldConfidence?.doctorSpecialty ?? Math.min(100, confidenceScore + 2),
+    hospital: extracted.fieldConfidence?.hospital ?? Math.min(100, confidenceScore + 1),
+    visitDate: extracted.fieldConfidence?.visitDate ?? Math.min(100, confidenceScore + 4),
+    diagnoses: extracted.fieldConfidence?.diagnoses ?? confidenceScore,
+    reportType: extracted.fieldConfidence?.reportType ?? Math.min(100, confidenceScore + 3),
+  };
+
   return {
     processedReport: {
-      patientName: extracted.patientName || 'Lakshmi Devi',
+      patientName: extracted.patientName || 'Parent',
       doctorName: extracted.doctorName || 'Dr. Specialist',
       doctorSpecialty: extracted.doctorSpecialty || 'General Medicine',
       hospital: extracted.hospital || 'Medical Center',
-      department: extracted.department || 'Outpatient',
+      department: extracted.department || 'Outpatient Clinic',
       visitDate: extracted.visitDate || new Date().toISOString().split('T')[0],
       reportType: extracted.reportType || 'prescription',
-      diagnoses: extracted.diagnoses || ['General Health Checkup'],
+      diagnoses: extracted.diagnoses || ['General Consultation'],
       medicines: newMedicines,
       labResults: newLabResults,
       doctorRecommendations: extracted.doctorRecommendations || ['Maintain current regimen.'],
       followUpDate: extracted.followUpDate,
       aiConfidenceScore: confidenceScore,
+      fieldConfidence,
       needsReview,
     },
     changeHighlights,
@@ -225,3 +250,4 @@ export function compareAndSynthesizeReport(
     caregiverSummary,
   };
 }
+

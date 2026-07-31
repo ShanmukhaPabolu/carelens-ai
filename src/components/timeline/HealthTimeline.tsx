@@ -14,7 +14,11 @@ import {
   AlertTriangle,
   Filter,
   Sparkles,
-  Edit3
+  Edit3,
+  ArrowDown,
+  FileText,
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 
@@ -39,6 +43,21 @@ export const HealthTimeline: React.FC = () => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'prescription':
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 uppercase">Prescription</span>;
+      case 'lab':
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">Lab Report</span>;
+      case 'scan':
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200 uppercase">Scan</span>;
+      case 'discharge':
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 uppercase">Discharge Summary</span>;
+      default:
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 uppercase">Consultation</span>;
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
       
@@ -46,26 +65,26 @@ export const HealthTimeline: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold mb-1">
-            <Clock className="w-3.5 h-3.5 text-blue-600" /> Chronological Health Stream
+            <Clock className="w-3.5 h-3.5 text-sky-600" /> Continuous Smart Health Journey
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             {activeParentProfile.name}'s Medical Timeline
           </h1>
           <p className="text-xs text-slate-500">
-            Continuously updated medical journey replacing paper files with AI change tracking.
+            Unified multi-hospital medical history replacing disconnected paper prescriptions with AI change tracking.
           </p>
         </div>
 
         {/* Filter Controls */}
         <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200 p-2 rounded-xl shadow-xs">
           <div className="flex items-center gap-1 text-xs text-slate-600 font-semibold px-2">
-            <Filter className="w-3.5 h-3.5 text-blue-600" /> Filter:
+            <Filter className="w-3.5 h-3.5 text-sky-600" /> Filter:
           </div>
 
           <select
             value={selectedSpecialty}
             onChange={(e) => setSelectedSpecialty(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-medium"
+            className="bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-sky-500 font-medium"
           >
             <option value="all">All Specialties</option>
             <option value="Endocrinology">Endocrinology</option>
@@ -78,20 +97,22 @@ export const HealthTimeline: React.FC = () => {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-medium"
+            className="bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-sky-500 font-medium"
           >
-            <option value="all">All Report Types</option>
+            <option value="all">All Report Categories</option>
             <option value="prescription">Prescription</option>
-            <option value="lab">Lab Results</option>
-            <option value="general">General Visit</option>
+            <option value="lab">Lab Report</option>
+            <option value="scan">Scan</option>
+            <option value="discharge">Discharge Summary</option>
+            <option value="consultation">Consultation</option>
           </select>
         </div>
       </div>
 
-      {/* Vertical Timeline Stream */}
-      <div className="relative border-l-2 border-slate-200 ml-4 sm:ml-8 pl-6 sm:pl-8 space-y-6">
+      {/* Vertical Connected Timeline Stream */}
+      <div className="relative border-l-2 border-sky-200 ml-4 sm:ml-8 pl-6 sm:pl-8 space-y-8">
         
-        {filteredReports.map((report) => {
+        {filteredReports.map((report, idx) => {
           const isExpanded = expandedId === report.id;
           const hasConflicts = (report.doctorConflicts?.length || 0) > 0;
           const isNeedsReview = report.needsReview;
@@ -101,16 +122,16 @@ export const HealthTimeline: React.FC = () => {
           const monthDayStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
           return (
-            <div key={report.id} className="relative">
+            <div key={report.id} className="relative space-y-3">
               
               {/* Timeline Node Dot */}
               <div
-                className={`absolute -left-[31px] sm:-left-[39px] top-2 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                className={`absolute -left-[31px] sm:-left-[39px] top-2 w-5 h-5 rounded-full border-2 flex items-center justify-center shadow-xs ${
                   hasConflicts
                     ? 'border-amber-500 bg-amber-100 text-amber-800'
                     : isNeedsReview
                     ? 'border-rose-500 bg-rose-100 text-rose-800'
-                    : 'border-blue-600 bg-white text-blue-600'
+                    : 'border-sky-600 bg-white text-sky-600'
                 }`}
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -125,8 +146,8 @@ export const HealthTimeline: React.FC = () => {
                   className="p-4 cursor-pointer flex flex-wrap items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="text-center px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 shrink-0">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block leading-none">
+                    <div className="text-center px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 shrink-0 shadow-2xs">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 block leading-none">
                         {yearStr}
                       </span>
                       <span className="text-xs font-bold text-slate-900 leading-tight block mt-0.5">
@@ -137,6 +158,7 @@ export const HealthTimeline: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-bold text-slate-900">{report.doctorSpecialty} Visit</h3>
+                        {getCategoryBadge(report.reportType)}
                         {hasConflicts && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
                             Conflict Alert
@@ -144,12 +166,12 @@ export const HealthTimeline: React.FC = () => {
                         )}
                         {isNeedsReview && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300">
-                            Needs Review
+                            Needs Review (&lt;80%)
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500">
-                        {report.doctorName} • {report.hospital}
+                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                        <Stethoscope className="w-3.5 h-3.5 text-sky-600" /> <strong className="text-slate-800">{report.doctorName}</strong> • <Building2 className="w-3 h-3 text-slate-400" /> {report.hospital}
                       </p>
                     </div>
                   </div>
@@ -165,7 +187,7 @@ export const HealthTimeline: React.FC = () => {
                               ? 'bg-rose-50 text-rose-800 border-rose-200'
                               : h.severity === 'warning'
                               ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-blue-50 text-blue-800 border-blue-200'
+                              : 'bg-sky-50 text-sky-800 border-sky-200'
                           }`}
                         >
                           {h.field}: {h.newValue}
@@ -180,9 +202,9 @@ export const HealthTimeline: React.FC = () => {
                 </div>
 
                 {/* Summary Strip */}
-                <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs text-slate-700 flex items-start gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <p className="line-clamp-2">{report.caregiverSummary}</p>
+                <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 text-xs text-slate-700 flex items-start gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                  <p className="line-clamp-2 leading-relaxed font-medium">{report.caregiverSummary}</p>
                 </div>
 
                 {/* Expandable Details */}
@@ -194,19 +216,36 @@ export const HealthTimeline: React.FC = () => {
                       exit={{ height: 0, opacity: 0 }}
                       className="border-t border-slate-200 p-5 space-y-5 bg-slate-50/50"
                     >
+                      {/* Diagnoses Pills */}
+                      {report.diagnoses.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Diagnoses Recorded
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {report.diagnoses.map((d, i) => (
+                              <span key={i} className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800">
+                                {d}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Medications Table */}
                       {report.medicines.length > 0 && (
                         <div>
                           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-                            <Pill className="w-3.5 h-3.5 text-blue-600" /> Prescribed Medications
+                            <Pill className="w-3.5 h-3.5 text-sky-600" /> Prescribed Medications
                           </h4>
-                          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs">
                             <table className="w-full text-left text-xs text-slate-800">
                               <thead className="bg-slate-100 text-slate-600 border-b border-slate-200 uppercase tracking-wider text-[10px]">
                                 <tr>
                                   <th className="p-2.5">Medication</th>
                                   <th className="p-2.5">Dosage</th>
                                   <th className="p-2.5">Frequency</th>
+                                  <th className="p-2.5">Confidence</th>
                                   <th className="p-2.5">Status</th>
                                 </tr>
                               </thead>
@@ -218,13 +257,18 @@ export const HealthTimeline: React.FC = () => {
                                       {m.previousDosage ? (
                                         <span>
                                           <span className="line-through text-slate-400 mr-1">{m.previousDosage}</span>
-                                          <span className="text-blue-700 font-bold">{m.dosage}</span>
+                                          <span className="text-sky-700 font-bold">{m.dosage}</span>
                                         </span>
                                       ) : (
                                         <span>{m.dosage}</span>
                                       )}
                                     </td>
                                     <td className="p-2.5 text-slate-500">{m.frequency}</td>
+                                    <td className="p-2.5">
+                                      <span className="text-[10px] font-bold text-slate-600">
+                                        {m.confidence}%
+                                      </span>
+                                    </td>
                                     <td className="p-2.5">
                                       <span
                                         className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
@@ -250,13 +294,13 @@ export const HealthTimeline: React.FC = () => {
                       {report.labResults.length > 0 && (
                         <div>
                           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-                            <Activity className="w-3.5 h-3.5 text-emerald-600" /> Lab Test Values
+                            <Activity className="w-3.5 h-3.5 text-emerald-600" /> Key Lab Test Results
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {report.labResults.map((l, i) => (
                               <div
                                 key={i}
-                                className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between"
+                                className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between shadow-2xs"
                               >
                                 <div>
                                   <p className="text-xs font-bold text-slate-900">{l.testName}</p>
@@ -280,15 +324,15 @@ export const HealthTimeline: React.FC = () => {
 
                       {/* Footer Actions */}
                       <div className="pt-2 flex items-center justify-between border-t border-slate-200">
-                        <span className="text-[11px] text-slate-500">
-                          AI Confidence: <strong className="text-slate-800">{report.aiConfidenceScore}%</strong> ({report.aiMode})
+                        <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-sky-600" /> Overall AI Confidence: <strong className="text-slate-800">{report.aiConfidenceScore}%</strong>
                         </span>
 
                         <Link
                           href={`/review/${report.id}`}
-                          className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200"
+                          className="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1 bg-sky-50 px-3 py-1 rounded-lg border border-sky-200"
                         >
-                          <Edit3 className="w-3.5 h-3.5" /> Edit / Review Extraction
+                          <Edit3 className="w-3.5 h-3.5" /> Edit / Human Verification
                         </Link>
                       </div>
 
@@ -296,6 +340,15 @@ export const HealthTimeline: React.FC = () => {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* VISUAL FLOW CONNECTOR (↓) */}
+              {idx < filteredReports.length - 1 && (
+                <div className="flex items-center justify-center py-1">
+                  <div className="w-7 h-7 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shadow-2xs">
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              )}
 
             </div>
           );
@@ -305,3 +358,4 @@ export const HealthTimeline: React.FC = () => {
     </div>
   );
 };
+

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Upload,
@@ -14,14 +14,20 @@ import {
   ChevronRight,
   Shield,
   Search,
-  Plus
+  Plus,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 import { AIHealthSummaryCard } from '@/components/dashboard/AIHealthSummaryCard';
 import { DoctorConflictAlert } from '@/components/dashboard/DoctorConflictAlert';
+import { ParentHealthStatusGrid } from '@/components/dashboard/ParentHealthStatusGrid';
+import { MissingRecordsCard } from '@/components/dashboard/MissingRecordsCard';
+import { EmergencyCardModal } from '@/components/dashboard/EmergencyCardModal';
 
 export default function DashboardPage() {
   const { activeParentProfile, reports, followUps, caregiverUser } = useMedical();
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
   const latestReport = reports[0];
   const allConflicts = reports.flatMap((r) => r.doctorConflicts || []);
@@ -78,7 +84,10 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
       
-      {/* Parent Profile Header Banner */}
+      {/* 1. PARENT HEALTH STATUS CARDS (Answers "How are my parents today?" via Status Cards) */}
+      <ParentHealthStatusGrid />
+
+      {/* Emergency Modal Trigger Bar & Profile Header */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="flex items-center space-x-4">
           <div className="w-12 h-12 rounded-xl bg-sky-100 border border-sky-200 text-sky-800 flex items-center justify-center font-bold text-lg">
@@ -107,30 +116,40 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onClick={() => setShowEmergencyModal(true)}
+            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+          >
+            <ShieldAlert className="w-4 h-4 text-rose-600" /> Emergency Card
+          </button>
+
           <Link
             href="/upload"
             className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2"
           >
             <Upload className="w-4 h-4" /> Upload New Report
           </Link>
-          <Link
-            href="/profile"
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-all flex items-center gap-1.5"
-          >
-            <User className="w-4 h-4 text-sky-600" /> Parent Profile
-          </Link>
         </div>
       </div>
 
-      {/* Doctor Conflicts Alert */}
+      {/* Emergency Modal */}
+      {showEmergencyModal && (
+        <EmergencyCardModal onClose={() => setShowEmergencyModal(false)} />
+      )}
+
+      {/* 2. Doctor Conflicts Alert */}
       <DoctorConflictAlert conflicts={allConflicts} />
 
-      {/* AI Caregiver Health Executive Summary */}
+      {/* 3. AI Caregiver Health Executive Hero Story */}
       <AIHealthSummaryCard
         parentProfile={activeParentProfile}
+        reports={reports}
         latestReport={latestReport}
         reportsCount={reports.length}
       />
+
+      {/* 4. Missing Health Records Alert Card (Requirement 11) */}
+      <MissingRecordsCard parentProfile={activeParentProfile} />
 
       {/* DYNAMIC BIOMARKER METRICS GRID */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -138,6 +157,7 @@ export default function DashboardPage() {
         {/* Dynamic HbA1c Metric */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-xs">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+
             HbA1c (Glycated)
             <TrendingUp className="w-3.5 h-3.5 text-rose-600" />
           </span>

@@ -132,6 +132,15 @@ export const Navbar: React.FC = () => {
               </Link>
             )}
 
+            {/* Emergency Health Card CTA */}
+            <Link
+              href="/emergency"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-lg text-xs font-bold transition-all"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+              <span>Emergency Card</span>
+            </Link>
+
             {/* Quick Upload CTA */}
             <Link
               href="/upload"
@@ -140,6 +149,7 @@ export const Navbar: React.FC = () => {
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Report</span>
             </Link>
+
 
             {/* PARENT PROFILE SWITCHER DROPDOWN */}
             <div className="relative">
