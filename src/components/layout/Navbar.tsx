@@ -10,7 +10,6 @@ import {
   LineChart,
   Search,
   User,
-  Sparkles,
   Calendar,
   AlertTriangle,
   RefreshCw,
@@ -44,9 +43,10 @@ export const Navbar: React.FC = () => {
     { href: '/search', label: 'Search', icon: Search },
   ];
 
+  // LANDING PAGE & LOGIN NAVBAR (Strict single CTA routing to /login)
   if (pathname === '/' || pathname === '/login') {
     return (
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 text-slate-900 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 text-slate-900 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">
@@ -55,18 +55,12 @@ export const Navbar: React.FC = () => {
             <span className="text-lg font-bold tracking-tight text-slate-900">CareLens</span>
           </Link>
 
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/dashboard"
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-            >
-              Workspace
-            </Link>
+          <div className="flex items-center">
             <Link
               href="/login"
-              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm"
+              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition-colors"
             >
-              Caregiver Portal
+              Sign In
             </Link>
           </div>
         </div>
@@ -75,7 +69,7 @@ export const Navbar: React.FC = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 text-slate-900 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 text-slate-900 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
@@ -119,7 +113,6 @@ export const Navbar: React.FC = () => {
           {/* Parent Switcher Dropdown & Actions */}
           <div className="flex items-center space-x-3 shrink-0">
             
-            {/* Urgent Review & Conflict Badges */}
             {conflictCount > 0 && (
               <Link
                 href="/dashboard"
@@ -142,7 +135,7 @@ export const Navbar: React.FC = () => {
             {/* Quick Upload CTA */}
             <Link
               href="/upload"
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Report</span>

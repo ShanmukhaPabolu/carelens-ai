@@ -4,218 +4,186 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Activity,
-  Sparkles,
   Upload,
   Clock,
   TrendingUp,
   AlertTriangle,
-  CheckCircle2,
-  ArrowRight,
-  Shield,
+  FileText,
   Search,
-  Zap,
-  Users,
-  ChevronRight
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  ChevronDown
 } from 'lucide-react';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-20 overflow-hidden border-b border-slate-900">
-        
-        {/* Background Gradients */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[350px] h-[350px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
+      {/* Quiet Clinical Hero Section */}
+      <section className="py-16 sm:py-24 border-b border-slate-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-wide uppercase shadow-inner">
-            <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Caregiver AI Health Timeline Prototype
+          {/* Muted Product Pill */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
+            <Activity className="w-3.5 h-3.5 text-blue-600" /> Caregiver AI Health Record Assistant
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.15]">
-            Stop opening scattered medical files.{' '}
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
-              Understand what changed instantly.
-            </span>
+          {/* Plain, Strong Single-Color Headline */}
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-3xl mx-auto">
+            Organize your parent's medical journey into a continuous AI timeline.
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
-            CareLens converts paper prescriptions, WhatsApp photos, and lab PDFs into a continuously updated health timeline with AI change detection, dosage tracking, and doctor conflict alerts.
+          {/* Readable Plain Subtitle */}
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
+            Convert scattered paper prescriptions, WhatsApp photos, and lab PDFs into clear medical change tracking. Understand what changed across visits without reading dozens of reports.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link
-              href="/dashboard"
-              className="px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-xl shadow-blue-600/30 transition-all flex items-center gap-2.5 group"
-            >
-              <span>Explore Demo Workspace</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
+          {/* Single Primary CTA Routing to /login */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/login"
-              className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-sm rounded-xl border border-slate-800 transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-2"
             >
-              <Users className="w-4 h-4 text-blue-400" /> Continue as Caregiver
+              <span>Get Started</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
+
+            <a
+              href="#how-it-works"
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5"
+            >
+              <span>Learn how it works</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+            </a>
           </div>
 
-          {/* Core Product Thesis Banner */}
-          <div className="pt-10 max-w-3xl mx-auto">
-            <div className="bg-slate-900/80 backdrop-blur-md border border-blue-500/30 p-5 rounded-2xl shadow-2xl text-left flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 mt-1">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-400">The Core CareLens Promise</p>
-                <p className="text-sm font-semibold text-slate-100">
-                  "The value is NOT storing medical reports—it is helping caregivers quickly understand what changed across multiple doctors and visits using AI."
-                </p>
-              </div>
+          {/* Quiet Restyled Promise Card */}
+          <div className="pt-8 max-w-2xl mx-auto">
+            <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl text-left space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                The CareLens Promise
+              </span>
+              <p className="text-xs text-slate-800 font-medium leading-relaxed">
+                "The value is not storing medical reports — it is helping caregivers quickly understand what changed across multiple doctors and visits using AI."
+              </p>
             </div>
           </div>
 
         </div>
       </section>
 
-      {/* Before vs After Comparison */}
-      <section className="py-20 bg-slate-950 border-b border-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* Explainer Section: How CareLens Works */}
+      <section id="how-it-works" className="py-16 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Scattered Reports vs. CareLens Clarity</h2>
-            <p className="text-xs text-slate-400">Why traditional cloud storage fails long-distance family caregivers.</p>
+          <div className="text-center space-y-1.5">
+            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Clinical Workflow</span>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">How CareLens Works for Caregivers</h2>
+            <p className="text-xs text-slate-500 max-w-lg mx-auto">
+              Simple 4-step workflow that transforms messy paper files into actionable health clarity.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Traditional Chaos */}
-            <div className="bg-slate-900/50 border border-rose-500/30 rounded-3xl p-7 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold">✕</div>
-                <h3 className="text-lg font-bold text-rose-300">The Old Way (Drive folders & WhatsApp)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                1
               </div>
-              <ul className="space-y-3 text-xs text-slate-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-rose-400 font-bold">•</span> Prescriptions buried in WhatsApp attachments & paper folders.
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-rose-400 font-bold">•</span> Spending 45 minutes opening PDFs one-by-one to see if Metformin dose changed.
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-rose-400 font-bold">•</span> Missing conflicting advice between Cardiologist and Nephrologist.
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-rose-400 font-bold">•</span> Zero visibility into 2-year lab trends during emergency room visits.
-                </li>
-              </ul>
+              <h3 className="text-xs font-bold text-slate-900">Upload Report</h3>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Snap a photo or upload PDFs of prescriptions, lab tests, or discharge summaries.
+              </p>
             </div>
 
-            {/* CareLens Solution */}
-            <div className="bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-7 space-y-4 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</div>
-                <h3 className="text-lg font-bold text-emerald-300">The CareLens AI Way</h3>
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                2
               </div>
-              <ul className="space-y-3 text-xs text-slate-200">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <strong>1-Click AI Upload:</strong> Vision model parses doctor handwriting, dosages, and labs automatically.
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <strong>Instant Change Detection:</strong> Highlights "Metformin 500mg → 1000mg" & "HbA1c +0.4%".
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <strong>Doctor Conflict Detector:</strong> Flags NSAIDs prescribed when kidney creatinine is elevated.
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <strong>Caregiver Executive Summary:</strong> Plain-English 3-bullet summary ready for family phone calls.
-                </li>
-              </ul>
+              <h3 className="text-xs font-bold text-slate-900">AI Vision Extraction</h3>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Extracts doctor notes, medications, dosages, and lab parameters with confidence scores.
+              </p>
             </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                3
+              </div>
+              <h3 className="text-xs font-bold text-slate-900">Automatic Change Detection</h3>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Compares new values against history to highlight dosage shifts and lab trends.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                4
+              </div>
+              <h3 className="text-xs font-bold text-slate-900">Conflict Alerts</h3>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Flags potential drug contradictions between specialists (e.g. NSAIDs vs creatinine elevation).
+              </p>
+            </div>
+
           </div>
 
         </div>
       </section>
 
-      {/* Feature Grid */}
-      <section className="py-20 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* Core Capabilities */}
+      <section className="py-16 bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Built for Caregivers</span>
-            <h2 className="text-3xl font-extrabold text-white">Powerful AI Workflow Features</h2>
+          <div className="text-center space-y-1.5">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Features</span>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Designed Specifically for Family Caregivers</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <Upload className="w-8 h-8 text-blue-400" />
-              <h3 className="text-base font-bold text-white">AI Medical Vision OCR</h3>
-              <p className="text-xs text-slate-400">
-                Drag and drop camera photos, PDFs, or prescriptions. Vision model extracts structured doctor notes.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+              <Clock className="w-5 h-5 text-blue-600" />
+              <h3 className="text-xs font-bold text-slate-900">Continuous Medical Stream</h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                View your parent's entire treatment history in a single chronological stream sorted by visit date.
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <Clock className="w-8 h-8 text-indigo-400" />
-              <h3 className="text-base font-bold text-white">Continuous Health Timeline</h3>
-              <p className="text-xs text-slate-400">
-                Chronological stream organized by visit date, doctor specialty, and medication modifications.
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-xs font-bold text-slate-900">Lab Trend Dashboards</h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Interactive longitudinal charts for HbA1c, Blood Sugar, Creatinine, BP, and Cholesterol over 2+ years.
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <AlertTriangle className="w-8 h-8 text-amber-400" />
-              <h3 className="text-base font-bold text-white">Doctor Conflict Detector</h3>
-              <p className="text-xs text-slate-400">
-                AI flags contradictory drug instructions across different specialists without altering prescriptions.
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <h3 className="text-xs font-bold text-slate-900">Doctor Conflict Detector</h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Identifies contradictory medication instructions between different treating doctors without altering prescriptions.
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <TrendingUp className="w-8 h-8 text-emerald-400" />
-              <h3 className="text-base font-bold text-white">Lab Trend Analytics</h3>
-              <p className="text-xs text-slate-400">
-                Interactive charts for HbA1c, Blood Sugar, Creatinine, BP, and Cholesterol over 2+ years.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <Shield className="w-8 h-8 text-rose-400" />
-              <h3 className="text-base font-bold text-white">Confidence & Manual Review</h3>
-              <p className="text-xs text-slate-400">
-                Fields with confidence below 80% are flagged "Needs Review" so you verify before saving.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <Search className="w-8 h-8 text-sky-400" />
-              <h3 className="text-base font-bold text-white">Medical History Search</h3>
-              <p className="text-xs text-slate-400">
-                Instant search across all uploaded reports for specific diagnoses, medicines, doctors, or lab tests.
-              </p>
-            </div>
           </div>
 
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 text-center space-y-6">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Ready to test CareLens?</h2>
-        <p className="text-sm text-slate-400 max-w-xl mx-auto">
-          Preloaded with demo dataset for Lakshmi Devi (8 reports, lab trends, doctor conflict warning, low-confidence review demo).
+      {/* Final CTA Section */}
+      <section className="py-16 text-center space-y-4 bg-slate-50">
+        <h2 className="text-2xl font-bold text-slate-900">Start managing your parent's health record</h2>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
+          Sign in with your name and email to access your caregiver workspace.
         </p>
         <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl shadow-xl shadow-blue-600/30 transition-all"
+          href="/login"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
         >
-          Launch CareLens Prototype <ArrowRight className="w-4 h-4" />
+          <span>Get Started</span>
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
 
