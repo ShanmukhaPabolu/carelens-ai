@@ -14,8 +14,13 @@ export interface RawExtractedData {
   doctorRecommendations?: string[];
   followUpDate?: string;
   aiConfidenceScore?: number;
+  ocrLegibilityScore?: number;
+  bulletSummary?: string[];
+  rawOcrText?: string;
+  trendInsights?: string[];
   fieldConfidence?: Partial<FieldConfidenceMap>;
 }
+
 
 export function compareAndSynthesizeReport(
   extracted: RawExtractedData,

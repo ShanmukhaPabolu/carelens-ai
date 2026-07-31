@@ -80,9 +80,14 @@ export interface MedicalReport {
   aiMode: 'gemini' | 'simulator';
   
   caregiverSummary: string;
+  bulletSummary?: string[];
+  ocrLegibilityScore?: number;
+  rawOcrText?: string;
+  trendInsights?: string[];
   changeHighlights: ChangeHighlight[];
   doctorConflicts?: DoctorConflict[];
 }
+
 
 export interface SmartFollowUpPrediction {
   id?: string;

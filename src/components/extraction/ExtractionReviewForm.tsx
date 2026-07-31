@@ -22,6 +22,8 @@ import {
 import { MedicalReport, Medication, LabResult, ReportCategory } from '@/types/medical';
 import { useMedical } from '@/context/MedicalContext';
 import { DoctorConflictAlert } from '../dashboard/DoctorConflictAlert';
+import { AIMedicalSummaryCard } from './AIMedicalSummaryCard';
+
 
 interface Props {
   report: MedicalReport;
@@ -142,10 +144,14 @@ export const ExtractionReviewForm: React.FC<Props> = ({ report: initialReport })
         </div>
       )}
 
+      {/* AI MEDICAL SUMMARY CARD (Requirement & Attached Design) */}
+      <AIMedicalSummaryCard report={report} />
+
       {/* Doctor Conflicts Alert */}
       {report.doctorConflicts && report.doctorConflicts.length > 0 && (
         <DoctorConflictAlert conflicts={report.doctorConflicts} />
       )}
+
 
       {/* Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">

@@ -21,6 +21,8 @@ import {
   Building2
 } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
+import { AIMedicalSummaryCard } from '../extraction/AIMedicalSummaryCard';
+
 
 export const HealthTimeline: React.FC = () => {
   const { reports, activeParentProfile } = useMedical();
@@ -245,6 +247,9 @@ export const HealthTimeline: React.FC = () => {
                       exit={{ height: 0, opacity: 0 }}
                       className="border-t border-slate-200 p-5 space-y-5 bg-slate-50/50"
                     >
+                      {/* AI Medical Summary Card View (Full Report Synthesis) */}
+                      <AIMedicalSummaryCard report={report} parentProfile={activeParentProfile} />
+
                       {/* Diagnoses Pills */}
                       {report.diagnoses.length > 0 && (
                         <div>
