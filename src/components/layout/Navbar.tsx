@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -21,6 +22,13 @@ import { useMedical } from '@/context/MedicalContext';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     profiles,
     activeParentId,
@@ -30,10 +38,10 @@ export const Navbar: React.FC = () => {
     caregiverUser,
     resetDemoData
   } = useMedical();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const needsReviewCount = reports.filter((r) => r.needsReview).length;
-  const conflictCount = reports.reduce((acc, r) => acc + (r.doctorConflicts?.length || 0), 0);
+  const needsReviewCount = mounted ? reports.filter((r) => r.needsReview).length : 0;
+  const conflictCount = mounted ? reports.reduce((acc, r) => acc + (r.doctorConflicts?.length || 0), 0) : 0;
+
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: Activity },
