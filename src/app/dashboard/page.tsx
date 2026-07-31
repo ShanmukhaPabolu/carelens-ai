@@ -150,16 +150,10 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {mounted && caregiverUser && (
-              <p className="text-xs text-sky-700 font-semibold mt-0.5">
-                Caregiver: {caregiverUser.fullName} ({caregiverUser.email})
-              </p>
-            )}
-
-
             <p className="text-xs text-slate-500 mt-0.5">
               Primary Physician: <strong className="text-slate-800">{activeParentProfile.primaryDoctor}</strong> • {activeParentProfile.hospital}
             </p>
+
           </div>
         </div>
 
