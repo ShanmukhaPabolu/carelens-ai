@@ -245,20 +245,11 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              {/* Direct Header Sign Out Button */}
-              <button
-                onClick={logoutCaregiverUser}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-lg text-xs font-bold border border-slate-200 transition-all"
-                title="Sign Out of CareLens"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Sign Out</span>
-              </button>
-
             </div>
           </div>
         </div>
       </header>
+
 
       {/* Add Family Member Modal */}
       <AddFamilyMemberModal
