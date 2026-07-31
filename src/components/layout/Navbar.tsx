@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 text-slate-900 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
+            <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold">
               <Activity className="w-4 h-4" />
             </div>
             <span className="text-lg font-bold tracking-tight text-slate-900">CareLens</span>
@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link
               href="/login"
-              className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors"
+              className="px-4 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-lg shadow-xs transition-colors"
             >
               Sign In
             </Link>
@@ -75,13 +75,13 @@ export const Navbar: React.FC = () => {
           
           {/* Brand Logo */}
           <Link href="/dashboard" className="flex items-center space-x-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
+            <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold">
               <Activity className="w-4 h-4" />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
                 CareLens
-                <span className="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                <span className="text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
                   Caregiver AI
                 </span>
               </span>
@@ -99,11 +99,11 @@ export const Navbar: React.FC = () => {
                   href={link.href}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-slate-100 text-emerald-800 border border-slate-200'
+                      ? 'bg-slate-100 text-sky-800 border border-slate-200'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
                   {link.label}
                 </Link>
               );
@@ -135,7 +135,7 @@ export const Navbar: React.FC = () => {
             {/* Quick Upload CTA */}
             <Link
               href="/upload"
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Report</span>
@@ -147,7 +147,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all"
               >
-                <Users className="w-3.5 h-3.5 text-emerald-600" />
+                <Users className="w-3.5 h-3.5 text-sky-600" />
                 <div className="text-left hidden lg:block">
                   <span className="font-bold block leading-tight">{activeParentProfile.name}</span>
                   <span className="text-[10px] text-slate-500 block leading-none">{activeParentProfile.relationship}</span>
@@ -160,7 +160,7 @@ export const Navbar: React.FC = () => {
                   <div className="pb-2 border-b border-slate-100">
                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Switch Parent Profile</p>
                     {caregiverUser && (
-                      <p className="text-xs text-emerald-700 font-semibold mt-0.5">Caregiver: {caregiverUser.fullName}</p>
+                      <p className="text-xs text-sky-700 font-semibold mt-0.5">Caregiver: {caregiverUser.fullName}</p>
                     )}
                   </div>
 
@@ -176,7 +176,7 @@ export const Navbar: React.FC = () => {
                           }}
                           className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors ${
                             isSelected
-                              ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200'
+                              ? 'bg-sky-50 text-sky-900 font-bold border border-sky-200'
                               : 'text-slate-700 hover:bg-slate-50 font-medium'
                           }`}
                         >
@@ -184,7 +184,7 @@ export const Navbar: React.FC = () => {
                             <p className="font-bold">{p.name} ({p.relationship})</p>
                             <p className="text-[10px] text-slate-500">{p.primaryCondition}</p>
                           </div>
-                          {isSelected && <Check className="w-4 h-4 text-emerald-600" />}
+                          {isSelected && <Check className="w-4 h-4 text-sky-600" />}
                         </button>
                       );
                     })}
@@ -196,7 +196,7 @@ export const Navbar: React.FC = () => {
                       onClick={() => setShowProfileMenu(false)}
                       className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-medium"
                     >
-                      <User className="w-3.5 h-3.5 text-emerald-600" /> View {activeParentProfile.name}'s Profile
+                      <User className="w-3.5 h-3.5 text-sky-600" /> View {activeParentProfile.name}'s Profile
                     </Link>
                     <button
                       onClick={() => {

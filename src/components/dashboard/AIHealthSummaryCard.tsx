@@ -19,14 +19,14 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
   if (!latestReport) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-slate-500 shadow-sm">
-        <Sparkles className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+        <Sparkles className="w-6 h-6 text-sky-600 mx-auto mb-2" />
         <p className="text-sm font-bold text-slate-900">No Medical Reports Uploaded Yet</p>
         <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
           Upload {parentProfile.name}'s medical reports or prescriptions to let AI build a continuous health timeline and change detection.
         </p>
         <Link
           href="/upload"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
         >
           Upload First Report
         </Link>
@@ -38,17 +38,17 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
   const labChanges = latestReport.changeHighlights.filter((c) => c.category === 'lab');
 
   return (
-    <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+    <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4">
       {/* Header Badge */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 font-bold">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">AI Caregiver Executive Summary</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 uppercase tracking-wider">
                 {reportsCount} Visits Analyzed
               </span>
             </div>
@@ -60,7 +60,7 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
 
         <Link
           href="/timeline"
-          className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
+          className="text-xs font-semibold text-sky-700 hover:underline flex items-center gap-1"
         >
           Full Timeline <ChevronRight className="w-3.5 h-3.5" />
         </Link>
@@ -78,9 +78,9 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
         <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
-              <Pill className="w-3.5 h-3.5 text-blue-600" /> Medication Changes
+              <Pill className="w-3.5 h-3.5 text-sky-600" /> Medication Changes
             </span>
-            <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-1.5 py-0.5 rounded">
               {medChanges.length} Updated
             </span>
           </div>
@@ -89,7 +89,7 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
               {medChanges.map((m) => (
                 <li key={m.id} className="text-slate-700">
                   <strong className="text-slate-900">{m.field}:</strong> {m.oldValue ? `${m.oldValue} → ` : ''}
-                  <span className="text-blue-700 font-semibold">{m.newValue}</span>
+                  <span className="text-sky-800 font-semibold">{m.newValue}</span>
                 </li>
               ))}
             </ul>
@@ -126,9 +126,9 @@ export const AIHealthSummaryCard: React.FC<Props> = ({
         <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-emerald-600" /> Next Follow-up
+              <Calendar className="w-3.5 h-3.5 text-sky-600" /> Next Follow-up
             </span>
-            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-1.5 py-0.5 rounded">
               Scheduled
             </span>
           </div>

@@ -73,7 +73,7 @@ export const LabTrendCharts: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold mb-1">
-            <LineChart className="w-3.5 h-3.5 text-blue-600" /> Longitudinal Lab Analytics
+            <LineChart className="w-3.5 h-3.5 text-sky-600" /> Longitudinal Lab Analytics
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             {activeParentProfile.name}'s Health Trend Dashboard
@@ -85,7 +85,7 @@ export const LabTrendCharts: React.FC = () => {
 
         <button
           onClick={handleExportSummary}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+          className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2"
         >
           <Download className="w-4 h-4" /> Export Summary
         </button>
@@ -97,7 +97,7 @@ export const LabTrendCharts: React.FC = () => {
           onClick={() => setActiveTab('hba1c')}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             activeTab === 'hba1c'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -108,7 +108,7 @@ export const LabTrendCharts: React.FC = () => {
           onClick={() => setActiveTab('glucose')}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             activeTab === 'glucose'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -119,7 +119,7 @@ export const LabTrendCharts: React.FC = () => {
           onClick={() => setActiveTab('creatinine')}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             activeTab === 'creatinine'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -130,7 +130,7 @@ export const LabTrendCharts: React.FC = () => {
           onClick={() => setActiveTab('bp')}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             activeTab === 'bp'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -141,7 +141,7 @@ export const LabTrendCharts: React.FC = () => {
           onClick={() => setActiveTab('cholesterol')}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             activeTab === 'cholesterol'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -172,10 +172,10 @@ export const LabTrendCharts: React.FC = () => {
 
           <div className="flex items-center gap-4 text-xs font-semibold">
             <span className="flex items-center gap-1 text-slate-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-600" /> Recorded Value
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-600" /> Recorded Value
             </span>
             <span className="flex items-center gap-1 text-slate-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Normal Threshold
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> Reference Line
             </span>
           </div>
         </div>
@@ -191,9 +191,9 @@ export const LabTrendCharts: React.FC = () => {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '12px' }}
                 />
-                <ReferenceLine y={120} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Normal Sys (120)', fill: '#10b981', fontSize: 10 }} />
+                <ReferenceLine y={120} stroke="#64748b" strokeDasharray="4 4" label={{ value: 'Normal Sys (120)', fill: '#64748b', fontSize: 10 }} />
                 <Line type="monotone" dataKey="systolic" name="Systolic BP" stroke="#e11d48" strokeWidth={2.5} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="diastolic" name="Diastolic BP" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="diastolic" name="Diastolic BP" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 4 }} />
               </ReLineChart>
             ) : (
               <ReLineChart
@@ -213,16 +213,16 @@ export const LabTrendCharts: React.FC = () => {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '12px' }}
                 />
-                {activeTab === 'hba1c' && <ReferenceLine y={5.7} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Normal (5.7)', fill: '#10b981', fontSize: 10 }} />}
-                {activeTab === 'creatinine' && <ReferenceLine y={1.0} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Max Normal (1.0)', fill: '#10b981', fontSize: 10 }} />}
-                {activeTab === 'cholesterol' && <ReferenceLine y={200} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Target (< 200)', fill: '#10b981', fontSize: 10 }} />}
+                {activeTab === 'hba1c' && <ReferenceLine y={5.7} stroke="#64748b" strokeDasharray="4 4" label={{ value: 'Normal (5.7)', fill: '#64748b', fontSize: 10 }} />}
+                {activeTab === 'creatinine' && <ReferenceLine y={1.0} stroke="#64748b" strokeDasharray="4 4" label={{ value: 'Max Normal (1.0)', fill: '#64748b', fontSize: 10 }} />}
+                {activeTab === 'cholesterol' && <ReferenceLine y={200} stroke="#64748b" strokeDasharray="4 4" label={{ value: 'Target (< 200)', fill: '#64748b', fontSize: 10 }} />}
                 <Line
                   type="monotone"
                   dataKey="value"
                   name="Lab Value"
-                  stroke="#2563eb"
+                  stroke="#0284c7"
                   strokeWidth={2.5}
-                  dot={{ r: 5, fill: '#2563eb' }}
+                  dot={{ r: 5, fill: '#0284c7' }}
                   activeDot={{ r: 7 }}
                 />
               </ReLineChart>

@@ -15,25 +15,25 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-sky-600 selection:text-white">
       
       {/* Hero Section */}
       <section className="relative py-16 sm:py-20 border-b border-slate-200/80 bg-[#F8FAFC] overflow-hidden">
         
         {/* Soft, blurred radial shape for subtle background depth (5-8% opacity) */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-emerald-600/[0.05] rounded-full blur-3xl pointer-events-none -z-0" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-sky-600/[0.05] rounded-full blur-3xl pointer-events-none -z-0" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-7 relative z-10">
           
           {/* Muted Product Pill */}
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-slate-700 border border-slate-200/90 text-xs font-semibold shadow-xs">
-            <Activity className="w-3.5 h-3.5 text-emerald-600" /> Caregiver AI Health Record Assistant
+            <Activity className="w-3.5 h-3.5 text-sky-600" /> Caregiver AI Health Record Assistant
           </div>
 
-          {/* Headline Hierarchy: Key Phrase in Nordic Emerald */}
+          {/* Headline Hierarchy: Key Phrase in Ocean Cyan */}
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug max-w-3xl mx-auto">
             Organize your parent's medical journey into a{' '}
-            <span className="text-emerald-700 font-extrabold">continuous AI timeline</span>.
+            <span className="text-sky-700 font-extrabold">continuous AI timeline</span>.
           </h1>
 
           {/* Plain Readable Body Subtitle */}
@@ -45,7 +45,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <Link
               href="/login"
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-2"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
@@ -66,7 +66,7 @@ export default function LandingPage() {
               
               {/* Step 1 */}
               <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-2 hover:border-slate-300 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 font-bold shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold shrink-0">
                   <Upload className="w-4 h-4" />
                 </div>
                 <div>
@@ -79,7 +79,7 @@ export default function LandingPage() {
 
               {/* Step 2 */}
               <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-2 hover:border-slate-300 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 font-bold shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
@@ -92,7 +92,7 @@ export default function LandingPage() {
 
               {/* Step 3 */}
               <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-2 hover:border-slate-300 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 font-bold shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold shrink-0">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
@@ -113,7 +113,7 @@ export default function LandingPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-slate-100">
                 
                 <div className="space-y-1 md:pr-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Unified History</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 block">Unified History</span>
                   <p className="text-xs font-bold text-slate-900">
                     "One place, not five WhatsApp threads"
                   </p>
@@ -123,7 +123,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="space-y-1 pt-4 md:pt-0 md:px-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Change Detection</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 block">Change Detection</span>
                   <p className="text-xs font-bold text-slate-900">
                     "Every dosage change flagged automatically"
                   </p>
@@ -133,7 +133,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="space-y-1 pt-4 md:pt-0 md:pl-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Trust & Verification</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 block">Trust & Verification</span>
                   <p className="text-xs font-bold text-slate-900">
                     "Built to admit when it's not sure"
                   </p>
@@ -154,14 +154,14 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center space-y-1.5">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Features</span>
+            <span className="text-xs font-bold text-sky-700 uppercase tracking-wider">Features</span>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Built Specifically for Family Caregivers</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <div className="bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-5 space-y-2">
-              <Clock className="w-5 h-5 text-emerald-700" />
+              <Clock className="w-5 h-5 text-sky-700" />
               <h3 className="text-xs font-bold text-slate-900">Continuous Medical Stream</h3>
               <p className="text-[11px] text-slate-600 leading-relaxed">
                 View your parent's entire treatment history in a single chronological stream sorted by visit date.
@@ -169,7 +169,7 @@ export default function LandingPage() {
             </div>
 
             <div className="bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-5 space-y-2">
-              <TrendingUp className="w-5 h-5 text-emerald-700" />
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
               <h3 className="text-xs font-bold text-slate-900">Lab Trend Analytics</h3>
               <p className="text-[11px] text-slate-600 leading-relaxed">
                 Interactive longitudinal charts for HbA1c, Blood Sugar, Creatinine, BP, and Cholesterol over time.
@@ -197,7 +197,7 @@ export default function LandingPage() {
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
         >
           <span>Get Started</span>
           <ArrowRight className="w-4 h-4" />

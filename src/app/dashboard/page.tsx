@@ -78,10 +78,10 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
       
-      {/* Parent Profile Header Banner with Personalized Caregiver Greeting */}
+      {/* Parent Profile Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-lg">
+          <div className="w-12 h-12 rounded-xl bg-sky-100 border border-sky-200 text-sky-800 flex items-center justify-center font-bold text-lg">
             {activeParentProfile.name.charAt(0)}
           </div>
           <div>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
             </div>
 
             {caregiverUser && (
-              <p className="text-xs text-emerald-700 font-semibold mt-0.5">
+              <p className="text-xs text-sky-700 font-semibold mt-0.5">
                 Caregiver: {caregiverUser.fullName} ({caregiverUser.email})
               </p>
             )}
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center gap-3 shrink-0">
           <Link
             href="/upload"
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2"
           >
             <Upload className="w-4 h-4" /> Upload New Report
           </Link>
@@ -117,12 +117,12 @@ export default function DashboardPage() {
             href="/profile"
             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-all flex items-center gap-1.5"
           >
-            <User className="w-4 h-4 text-emerald-600" /> Parent Profile
+            <User className="w-4 h-4 text-sky-600" /> Parent Profile
           </Link>
         </div>
       </div>
 
-      {/* Doctor Conflicts Alert (If Any Detected) */}
+      {/* Doctor Conflicts Alert */}
       <DoctorConflictAlert conflicts={allConflicts} />
 
       {/* AI Caregiver Health Executive Summary */}
@@ -171,7 +171,7 @@ export default function DashboardPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-xs">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
             Serum Creatinine
-            <Shield className="w-3.5 h-3.5 text-emerald-600" />
+            <Shield className="w-3.5 h-3.5 text-sky-600" />
           </span>
           <p className="text-xl font-bold text-slate-900">
             {latestCreatinine ? `${latestCreatinine.value} mg/dL` : 'No data yet'}
@@ -185,7 +185,7 @@ export default function DashboardPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1 shadow-xs">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
             Total Cholesterol
-            <LineChart className="w-3.5 h-3.5 text-emerald-600" />
+            <LineChart className="w-3.5 h-3.5 text-sky-600" />
           </span>
           <p className="text-xl font-bold text-slate-900">
             {latestCholesterol ? `${latestCholesterol.value} mg/dL` : 'No data yet'}
@@ -200,16 +200,16 @@ export default function DashboardPage() {
       {/* Main 2-Column Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left 2 Cols: Timeline & Recent Reports */}
+        {/* Left 2 Cols */}
         <div className="lg:col-span-2 space-y-4">
           
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-emerald-600" /> Medical Reports Stream for {activeParentProfile.name}
+              <Clock className="w-4 h-4 text-sky-600" /> Medical Reports Stream for {activeParentProfile.name}
             </h2>
             <Link
               href="/timeline"
-              className="text-xs font-semibold text-emerald-700 hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-sky-700 hover:underline flex items-center gap-1"
             >
               View All {reports.length} Reports <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -223,7 +223,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-emerald-800">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-sky-800">
                       {report.visitDate.substring(5, 7)}/{report.visitDate.substring(2, 4)}
                     </div>
                     <div>
@@ -261,16 +261,16 @@ export default function DashboardPage() {
 
         </div>
 
-        {/* Right 1 Col: Follow-up & Quick Actions */}
+        {/* Right 1 Col */}
         <div className="space-y-4">
           
           {/* Smart Follow-ups Card */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-emerald-600" /> Upcoming Follow-ups
+                <Calendar className="w-4 h-4 text-sky-600" /> Upcoming Follow-ups
               </h2>
-              <Link href="/follow-ups" className="text-xs font-semibold text-emerald-700 hover:underline">
+              <Link href="/follow-ups" className="text-xs font-semibold text-sky-700 hover:underline">
                 View All
               </Link>
             </div>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
                 <div key={item.id} className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-0.5">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-900">
                     <span>{item.doctorName}</span>
-                    <span className="text-emerald-700">{item.date}</span>
+                    <span className="text-sky-700">{item.date}</span>
                   </div>
                   <p className="text-[11px] text-slate-500">{item.specialty} • {item.reason}</p>
                 </div>
@@ -294,7 +294,7 @@ export default function DashboardPage() {
             
             <Link
               href="/upload"
-              className="w-full p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold flex items-center gap-2 transition-colors"
+              className="w-full p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 hover:bg-sky-100 text-xs font-semibold flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" /> Upload Report for {activeParentProfile.name}
             </Link>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
               href="/trends"
               className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-2 transition-colors"
             >
-              <LineChart className="w-4 h-4 text-emerald-600" /> Open Lab Trend Dashboard
+              <LineChart className="w-4 h-4 text-sky-600" /> Open Lab Trend Dashboard
             </Link>
 
             <Link
