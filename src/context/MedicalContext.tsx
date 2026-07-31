@@ -82,7 +82,9 @@ export const MedicalProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const setCaregiverUser = (user: CaregiverUser) => {
     saveStoredCaregiverUser(user);
     setCaregiverUserState(user);
+    refreshData();
   };
+
 
   // Filter reports & follow-ups by active parent ID
   const activeParentProfile =

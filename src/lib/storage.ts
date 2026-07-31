@@ -11,12 +11,29 @@ const STORAGE_KEYS = {
 
 const isBrowser = typeof window !== 'undefined';
 
+// Helper to scope storage keys by logged-in caregiver user email
+const getUserStorageKey = (baseKey: string): string => {
+  if (!isBrowser) return baseKey;
+  try {
+    const rawUser = localStorage.getItem(STORAGE_KEYS.USER);
+    if (rawUser) {
+      const user = JSON.parse(rawUser);
+      if (user && user.email) {
+        const cleanEmail = user.email.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        return `${baseKey}_${cleanEmail}`;
+      }
+    }
+  } catch {}
+  return baseKey;
+};
+
 export const getStoredProfiles = (): ParentProfile[] => {
   if (!isBrowser) return INITIAL_PARENT_PROFILES;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
+    const key = getUserStorageKey(STORAGE_KEYS.PROFILES);
+    const raw = localStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(INITIAL_PARENT_PROFILES));
+      localStorage.setItem(key, JSON.stringify(INITIAL_PARENT_PROFILES));
       return INITIAL_PARENT_PROFILES;
     }
     return JSON.parse(raw);
@@ -28,7 +45,8 @@ export const getStoredProfiles = (): ParentProfile[] => {
 export const saveStoredProfiles = (profiles: ParentProfile[]): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    const key = getUserStorageKey(STORAGE_KEYS.PROFILES);
+    localStorage.setItem(key, JSON.stringify(profiles));
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
     console.error('Error saving parent profiles:', e);
@@ -41,13 +59,16 @@ export const addProfileToStore = (newProfile: ParentProfile): void => {
   saveStoredProfiles(updated);
 };
 
-
-
 export const getStoredActiveParentId = (): string => {
   if (!isBrowser) return 'parent_mother';
   try {
-    const id = localStorage.getItem(STORAGE_KEYS.ACTIVE_PARENT);
-    return id || 'parent_mother';
+    const key = getUserStorageKey(STORAGE_KEYS.ACTIVE_PARENT);
+    const id = localStorage.getItem(key);
+    if (!id) {
+      const profiles = getStoredProfiles();
+      return profiles[0]?.id || 'parent_mother';
+    }
+    return id;
   } catch {
     return 'parent_mother';
   }
@@ -56,7 +77,8 @@ export const getStoredActiveParentId = (): string => {
 export const saveStoredActiveParentId = (id: string): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_PARENT, id);
+    const key = getUserStorageKey(STORAGE_KEYS.ACTIVE_PARENT);
+    localStorage.setItem(key, id);
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
     console.error('Error saving active parent ID:', e);
@@ -66,7 +88,8 @@ export const saveStoredActiveParentId = (id: string): void => {
 export const getStoredReports = (): MedicalReport[] => {
   if (!isBrowser) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.REPORTS);
+    const key = getUserStorageKey(STORAGE_KEYS.REPORTS);
+    const raw = localStorage.getItem(key);
     if (!raw) {
       return [];
     }
@@ -82,7 +105,8 @@ export const getStoredReports = (): MedicalReport[] => {
 export const saveStoredReports = (reports: MedicalReport[]): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+    const key = getUserStorageKey(STORAGE_KEYS.REPORTS);
+    localStorage.setItem(key, JSON.stringify(reports));
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
     console.error('Error saving medical reports:', e);
@@ -133,7 +157,8 @@ export const deleteReportFromStore = (reportId: string): void => {
 export const getStoredFollowUps = (): FollowUpItem[] => {
   if (!isBrowser) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.FOLLOWUPS);
+    const key = getUserStorageKey(STORAGE_KEYS.FOLLOWUPS);
+    const raw = localStorage.getItem(key);
     if (!raw) {
       return [];
     }
@@ -146,7 +171,8 @@ export const getStoredFollowUps = (): FollowUpItem[] => {
 export const saveStoredFollowUps = (followUps: FollowUpItem[]): void => {
   if (!isBrowser) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.FOLLOWUPS, JSON.stringify(followUps));
+    const key = getUserStorageKey(STORAGE_KEYS.FOLLOWUPS);
+    localStorage.setItem(key, JSON.stringify(followUps));
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
     console.error('Error saving follow-ups:', e);
@@ -185,10 +211,15 @@ export const saveStoredCaregiverUser = (user: CaregiverUser): void => {
 export const clearAllData = (): void => {
   if (!isBrowser) return;
   try {
-    localStorage.removeItem(STORAGE_KEYS.REPORTS);
-    localStorage.removeItem(STORAGE_KEYS.FOLLOWUPS);
-    localStorage.removeItem(STORAGE_KEYS.PROFILES);
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_PARENT);
+    const profilesKey = getUserStorageKey(STORAGE_KEYS.PROFILES);
+    const reportsKey = getUserStorageKey(STORAGE_KEYS.REPORTS);
+    const followUpsKey = getUserStorageKey(STORAGE_KEYS.FOLLOWUPS);
+    const activeKey = getUserStorageKey(STORAGE_KEYS.ACTIVE_PARENT);
+
+    localStorage.removeItem(reportsKey);
+    localStorage.removeItem(followUpsKey);
+    localStorage.removeItem(profilesKey);
+    localStorage.removeItem(activeKey);
     window.dispatchEvent(new Event('carelens_data_updated'));
   } catch (e) {
     console.error('Error clearing data:', e);
@@ -196,4 +227,3 @@ export const clearAllData = (): void => {
 };
 
 export const resetAllDataToDemo = clearAllData;
-
