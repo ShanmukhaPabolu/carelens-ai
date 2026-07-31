@@ -65,7 +65,7 @@ export interface MedicalReport {
   
   aiConfidenceScore: number; // overall 0-100
   needsReview: boolean;
-  aiMode: 'gemini' | 'simulator'; // Explicit indicator if real API or fallback simulator was used
+  aiMode: 'gemini' | 'simulator';
   
   caregiverSummary: string;
   changeHighlights: ChangeHighlight[];
@@ -103,5 +103,6 @@ export interface ParentProfile {
 export interface CaregiverUser {
   fullName: string;
   email: string;
+  password?: string;
   createdAt: string;
 }
