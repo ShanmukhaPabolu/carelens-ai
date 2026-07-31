@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareLens AI - AI-First Health Intelligence Platform for Remote Family Caregivers
 
-## Getting Started
+![CareLens AI Cover](https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=1200)
 
-First, run the development server:
+**CareLens AI** is an AI-powered health intelligence platform designed for adult children living in another city who need to monitor and understand their aging parents' and family members' health journey—without manually sorting through dozens of medical reports from multiple hospitals and doctors.
 
+Unlike traditional personal health record apps that merely store static PDFs, CareLens AI uses **Google Gemini 2.5 Flash API** to automatically parse medical document photos, extract clinical entities, detect multi-doctor prescription conflicts, generate continuous AI health stories, track biomarker lab trends, and generate shareable Emergency Health Cards.
+
+---
+
+## 🌟 Key Features
+
+### 1. 🤖 Gemini 2.5 Flash Document Parsing
+Upload paper prescriptions, hospital lab prints, scans, discharge summaries, or consultation notes (PNG, JPG, PDF). Gemini AI extracts:
+- **Doctor Name & Clinical Specialty**
+- **Hospital / Clinic & Department**
+- **Visit Date & Report Classification**
+- **Extracted Diagnoses**
+- **Prescribed Medications, Dosages & Frequencies**
+- **Lab Test Values, Units & Reference Ranges**
+- **Doctor Recommendations & Return Visit Dates**
+
+### 2. 📖 Continuous AI Health Story
+Synthesizes all uploaded reports across time and multiple hospitals into a single, cohesive, plain-English health narrative. Caregivers don't need to read 20 separate PDFs to understand what changed over the past year.
+
+### 3. ⚠️ Multi-Doctor Conflict Detection Engine
+Automatically cross-references prescriptions across different doctors and hospitals. If Dr. Thorne prescribed *Metformin 500mg* and Dr. Kumar prescribed *Metformin 1000mg*, CareLens AI raises a prominent **Multi-Doctor Conflict Alert** warning caregivers to verify before administration.
+
+### 4. 🎯 Granular Field Confidence & Human-in-the-Loop Verification
+- Assigns field-level AI confidence scores for doctor names, visit dates, diagnoses, and medicines.
+- Low-confidence fields (<80%) flag an **Interactive Extraction Review Form**, allowing caregivers to verify extracted text side-by-side with the original document scan.
+
+### 5. 🚨 Emergency Health Card
+One-click printable and shareable **Emergency Summary Card** containing:
+- Critical Allergies & Blood Group
+- Primary Medical Conditions
+- Active Prescriptions & Dosages
+- Primary Physician & Preferred Hospitals
+- Emergency Contact Details
+
+### 6. 📈 Longitudinal Biomarker Lab Trends
+Interactive trend charts for tracking key biomarker metrics over time:
+- **HbA1c (%)** & **Fasting Blood Sugar**
+- **Serum Creatinine (Kidney Function)**
+- **Blood Pressure (Systolic & Diastolic)**
+- **Body Weight (kg)** & **Liver Enzymes (ALT/AST)**
+
+### 7. 📅 Smart Follow-up Reminder System
+Extracts return consultation dates from doctor prescription notes and converts them into upcoming caregiver reminders with countdown timers.
+
+### 8. 👨‍👩‍👧‍👦 Multi-Family Member Support
+Seamlessly switch between and manage profiles for:
+- **Mother & Father**
+- **Grandmother & Grandfather**
+- **Mother-in-Law & Father-in-Law**
+- **Spouse, Siblings, or Custom Family Members**
+
+---
+
+## 🛠️ Technology Stack
+
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **UI Logic**: [React 19](https://react.dev/) & [TypeScript](https://www.typescriptlang.org/)
+- **AI Model**: [Google Gemini 2.5 Flash API (`@google/genai`)](https://aistudio.google.com/)
+- **Styling**: Vanilla CSS & Tailwind CSS
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Node.js 18.x or higher
+- npm, yarn, or pnpm
+- Google Gemini API Key (Get a free key from [Google AI Studio](https://aistudio.google.com/app/apikey))
+
+### 2. Installation
+Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/ShanmukhaPabolu/carelens-ai.git
+cd carelens-ai
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Environment Configuration
+Create a `.env.local` file in the root directory:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run Development Server
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) in your browser to launch CareLens AI.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛡️ Responsible AI & Medical Disclaimer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> **IMPORTANT**: CareLens AI is a caregiver health intelligence and decision-support assistant designed for educational and organizational purposes. Extracted clinical data and AI insights do not constitute formal medical advice, diagnosis, or treatment plans. Always consult a qualified physician or certified healthcare provider before modifying any medical treatment or prescription dosage.
