@@ -1,40 +1,54 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Calendar, CheckCircle2, Building, Sparkles, Plus, Edit2, X, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, CheckCircle2, Building, Sparkles, Plus, Edit2, X, ShieldCheck, Clock } from 'lucide-react';
 import { useMedical } from '@/context/MedicalContext';
 import { SmartFollowUpPrediction } from '@/types/medical';
+import Link from 'next/link';
 
 export const FollowUpTracker: React.FC = () => {
-  const { followUps, markFollowUpComplete, activeParentProfile } = useMedical();
+  const { followUps, markFollowUpComplete, activeParentProfile, reports } = useMedical();
 
-  // Smart AI Predictions when no explicit follow-up date is mentioned on report
-  const [predictions, setPredictions] = useState<SmartFollowUpPrediction[]>([
-    {
-      id: 'pred-1',
-      condition: 'Type 2 Diabetes Routine Review',
-      typicalIntervalMonths: 3,
-      predictedDate: '2026-08-15',
-      reasoning: 'Routine HbA1c and glycemic control evaluation recommended every 3 months after starting Metformin.',
-      accepted: false,
-    },
-    {
-      id: 'pred-2',
-      condition: 'Hypertension Regimen Check',
-      typicalIntervalMonths: 1,
-      predictedDate: '2026-06-10',
-      reasoning: 'Follow-up recommended 1 month after modifying blood pressure dosage (Amlodipine 5mg).',
-      accepted: false,
-    },
-    {
-      id: 'pred-3',
-      condition: 'Annual Geriatric Comprehensive Health Check',
-      typicalIntervalMonths: 6,
-      predictedDate: '2026-11-20',
-      reasoning: 'Semi-annual lipid panel, renal function, and vision screening for active seniors.',
-      accepted: false,
-    },
-  ]);
+  const [predictions, setPredictions] = useState<SmartFollowUpPrediction[]>([]);
+
+  // Dynamically generate predictions strictly for the active parent profile's uploaded reports
+  useEffect(() => {
+    if (!reports || reports.length === 0) {
+      setPredictions([]);
+      return;
+    }
+
+    const generated: SmartFollowUpPrediction[] = [];
+    const latestReport = reports[0];
+
+    if (latestReport) {
+      const visitTime = new Date(latestReport.visitDate).getTime();
+      const threeMonthsLater = new Date(visitTime + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const sixMonthsLater = new Date(visitTime + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const diagStr = latestReport.diagnoses[0] || 'General Clinical Condition';
+      
+      generated.push({
+        id: `pred-diag-${latestReport.id}`,
+        condition: `${diagStr} Follow-up Review`,
+        typicalIntervalMonths: 3,
+        predictedDate: threeMonthsLater,
+        reasoning: `Based on visit with ${latestReport.doctorName} (${latestReport.doctorSpecialty}), routine review for ${diagStr} is recommended within 3 months.`,
+        accepted: false,
+      });
+
+      generated.push({
+        id: `pred-routine-${latestReport.id}`,
+        condition: `Semi-Annual Health Checkup for ${activeParentProfile.name}`,
+        typicalIntervalMonths: 6,
+        predictedDate: sixMonthsLater,
+        reasoning: `Semi-annual lab panel & routine monitoring recommended for ${activeParentProfile.name}.`,
+        accepted: false,
+      });
+    }
+
+    setPredictions(generated);
+  }, [reports, activeParentProfile.id, activeParentProfile.name]);
 
   const getDaysRemaining = (targetDateStr: string) => {
     const target = new Date(targetDateStr).getTime();
@@ -49,6 +63,7 @@ export const FollowUpTracker: React.FC = () => {
   const handleDismissPrediction = (id: string) => {
     setPredictions(predictions.filter((p) => p.id !== id));
   };
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16">
@@ -83,12 +98,21 @@ export const FollowUpTracker: React.FC = () => {
             </div>
           </div>
           <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
-            3 Recommended
+            {predictions.length} Recommended
           </span>
         </div>
 
-        <div className="space-y-3">
-          {predictions.map((pred) => (
+        {predictions.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-xl p-5 text-center text-slate-500 space-y-2">
+            <p className="text-xs font-bold text-slate-900">No AI follow-up predictions available yet.</p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Upload medical reports for {activeParentProfile.name} to generate AI predictions for routine checkup intervals.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {predictions.map((pred) => (
+
             <div
               key={pred.id}
               className={`bg-white border rounded-xl p-4 space-y-2.5 shadow-2xs transition-all ${
@@ -142,7 +166,9 @@ export const FollowUpTracker: React.FC = () => {
             </div>
           ))}
         </div>
+        )}
       </div>
+
 
       {/* SECTION 2: SCHEDULED FOLLOW-UPS FROM PRESCRIPTIONS */}
       <div className="space-y-3 pt-2">
